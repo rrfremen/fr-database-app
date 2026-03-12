@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>722</width>
-    <height>314</height>
+    <width>735</width>
+    <height>332</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -38,6 +38,13 @@
          </property>
          <property name="inputMask">
           <string/>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_search">
+         <property name="text">
+          <string>Search</string>
          </property>
         </widget>
        </item>
@@ -74,11 +81,15 @@
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout_3">
        <item>
-        <widget class="QPushButton" name="pushButton_analyse">
-         <property name="text">
-          <string>Analyse</string>
-         </property>
-        </widget>
+        <layout class="QHBoxLayout" name="horizontalLayout_5">
+         <item>
+          <widget class="QPushButton" name="pushButton_analyse">
+           <property name="text">
+            <string>Analyse</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
       </layout>
      </item>

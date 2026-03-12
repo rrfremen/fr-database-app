@@ -41,6 +41,13 @@
          </property>
         </widget>
        </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_search">
+         <property name="text">
+          <string>Search</string>
+         </property>
+        </widget>
+       </item>
       </layout>
      </item>
      <item>
@@ -74,11 +81,22 @@
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout_3">
        <item>
-        <widget class="QPushButton" name="pushButton_analyse">
-         <property name="text">
-          <string>Analyse</string>
-         </property>
-        </widget>
+        <layout class="QHBoxLayout" name="horizontalLayout_4">
+         <item>
+          <widget class="QPushButton" name="pushButton_analyse">
+           <property name="text">
+            <string>Analyse</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_showDetails">
+           <property name="text">
+            <string>Show Details</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
       </layout>
      </item>
