@@ -11,8 +11,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\EntryBuyer.h" />
-    <ClInclude Include="include\EntryProperty.h" />
+    <QtMoc Include="include\EntryBuyer.h" />
+    <QtMoc Include="include\EntryProperty.h" />
     <QtMoc Include="include\MainWindow.h" />
   </ItemGroup>
   <ItemGroup>
@@ -28,6 +28,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="fr-database-app.slnx" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="external\json.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{B1C20B1D-9531-4A7D-80F3-5A3B13443899}</ProjectGuid>

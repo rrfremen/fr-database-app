@@ -2,6 +2,9 @@
 
 #include <QMainWindow>
 
+#include "EntryBuyer.h"
+#include "EntryProperty.h"
+
 namespace Ui {
 	class MainWindow;
 }
@@ -16,4 +19,9 @@ public:
 
 private:
 	Ui::MainWindow* ui;
+	EntryBuyer* entryBuyer;
+	EntryProperty* entryProperty;
+
+	// functions
+	void setupUiLocal();
 };
