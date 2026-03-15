@@ -16,6 +16,7 @@
     <QtMoc Include="include\MainWindow.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\EntryBaseClass.cpp" />
     <ClCompile Include="src\EntryBuyer.cpp" />
     <ClCompile Include="src\EntryProperty.cpp" />
     <ClCompile Include="src\main.cpp" />
@@ -27,10 +28,13 @@
     <QtUic Include="ui\MainWindow.ui" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="assets\config.json" />
     <None Include="fr-database-app.slnx" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="external\json.hpp" />
+    <ClInclude Include="external\nlohmann-json.hpp" />
+    <ClInclude Include="include\Logger.h" />
+    <QtMoc Include="include\EntryBaseClass.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{B1C20B1D-9531-4A7D-80F3-5A3B13443899}</ProjectGuid>

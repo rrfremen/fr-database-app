@@ -1,12 +1,13 @@
 #pragma once
 
 #include <QWidget>
+#include "EntryBaseClass.h"
 
 namespace Ui {
 	class EntryProperty;
 }
 
-class EntryProperty : public QWidget
+class EntryProperty : public EntryBaseClass
 {
 	Q_OBJECT;
 

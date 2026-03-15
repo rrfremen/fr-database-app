@@ -1,12 +1,13 @@
 #pragma once
 
 #include <QWidget>
+#include "EntryBaseClass.h"
 
 namespace Ui {
 	class EntryBuyer;
 }
 
-class EntryBuyer : public QWidget
+class EntryBuyer : public EntryBaseClass
 {
 	Q_OBJECT
 

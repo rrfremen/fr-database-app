@@ -35,6 +35,9 @@
     <ClCompile Include="src\MainWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\EntryBaseClass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="include\MainWindow.h">
@@ -44,6 +47,9 @@
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="include\EntryProperty.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="include\EntryBaseClass.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>
@@ -60,5 +66,14 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="fr-database-app.slnx" />
+    <None Include="assets\config.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="external\nlohmann-json.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Logger.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

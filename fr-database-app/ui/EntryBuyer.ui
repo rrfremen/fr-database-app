@@ -57,7 +57,7 @@
       </layout>
      </item>
      <item>
-      <widget class="QListView" name="listView_entry"/>
+      <widget class="QTableView" name="tableView_entry"/>
      </item>
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout_control">

@@ -1,5 +1,13 @@
+// built-in
+#include <iostream>
+#include <fstream>
+
+// external libraries
+
+// internal libraries
 #include "../include/MainWindow.h"
 #include "ui_MainWindow.h"
+#include "../include/Logger.h"
 
 MainWindow::MainWindow(QWidget* parent)
 	: QMainWindow(parent)

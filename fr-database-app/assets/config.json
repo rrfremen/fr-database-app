@@ -1,0 +1,6 @@
+{
+  "listCols": {
+    "EntryBuyer": ["Name", "Contact Details", "Adress", "Budget", "Keywords"],
+    "EntryProperty": ["Id", "Date", "Adress", "Price", "Rooms", "Area", "Keywords"]
+  }
+}
