@@ -16,6 +16,7 @@
     <QtMoc Include="include\MainWindow.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="external\sqlite3.c" />
     <ClCompile Include="src\EntryBaseClass.cpp" />
     <ClCompile Include="src\EntryBuyer.cpp" />
     <ClCompile Include="src\EntryProperty.cpp" />
@@ -33,6 +34,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="external\nlohmann-json.hpp" />
+    <ClInclude Include="external\sqlite3.h" />
     <ClInclude Include="include\Logger.h" />
     <QtMoc Include="include\EntryBaseClass.h" />
   </ItemGroup>

@@ -3,6 +3,7 @@
 #include <fstream>
 
 // external libraries
+#include "../external/sqlite3.h"
 
 // internal libraries
 #include "../include/EntryProperty.h"
