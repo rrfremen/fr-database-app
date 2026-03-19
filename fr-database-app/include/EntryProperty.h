@@ -1,5 +1,9 @@
 #pragma once
 
+// external libraries
+#include "../external/sqlite3.h"
+
+// internals libraries
 #include <QWidget>
 #include "EntryBaseClass.h"
 
@@ -12,7 +16,7 @@ class EntryProperty : public EntryBaseClass
 	Q_OBJECT;
 
 public:
-	EntryProperty(QWidget* parent = nullptr);
+	EntryProperty(sqlite3* database, QWidget* parent = nullptr);
 	~EntryProperty();
 
 private:

@@ -1,5 +1,9 @@
 #pragma once
 
+// external libraries
+#include "../external/sqlite3.h"
+
+// internal libraries
 #include <QWidget>
 #include "EntryBaseClass.h"
 
@@ -12,7 +16,7 @@ class EntryBuyer : public EntryBaseClass
 	Q_OBJECT
 
 public:
-	EntryBuyer(QWidget* parent = nullptr);
+	EntryBuyer(sqlite3* database, QWidget* parent = nullptr);
 	~EntryBuyer();
 
 private:

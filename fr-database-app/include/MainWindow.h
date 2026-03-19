@@ -1,12 +1,12 @@
 #pragma once
 
-#include <QMainWindow>
-
-#include "EntryBuyer.h"
-#include "EntryProperty.h"
-
 // external libraries
 #include "../external/sqlite3.h"
+
+// internal libraries 
+#include <QMainWindow>
+#include "EntryBuyer.h"
+#include "EntryProperty.h"
 
 namespace Ui {
 	class MainWindow;
@@ -20,19 +20,20 @@ public:
 	MainWindow(QWidget* parent = nullptr);
 	~MainWindow();
 
-	// declare the database
-	sqlite3* db;
-	int rc;
-	const char* buyer;
-	const char* properties;
-	int errMsg;
-
 private:
 	Ui::MainWindow* ui;
-	EntryBuyer* entryBuyer;
-	EntryProperty* entryProperty;
+	EntryBuyer* entryBuyer = nullptr;
+	EntryProperty* entryProperty = nullptr;
 
-		// functions
+	// declare the database
+	sqlite3* db = nullptr;
+	int rc = 0;
+	int errMsg = 0;
+
+	const char* buyer = nullptr;
+	const char* properties = nullptr;
+
+	// functions
 	void setupUiLocal();
 	void createDatabase();
 	void connectionMessage();
