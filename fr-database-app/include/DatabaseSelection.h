@@ -44,7 +44,8 @@ private:
 	// functions
 	void setupUiSignals();
 	void populateDatabaseComboBox();
-	void newDatabase();
+	void onNewDatabase();
 	void onLoadDatabase();
 	void onUnloadDatabase();
+	void createDatabase();
 };
