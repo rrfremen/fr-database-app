@@ -25,6 +25,7 @@ protected:
 
 	void setupUiLocal(QTableView* table, const std::string& text);
 	void setDatabase(sqlite3* database);
-	void addEntry(QPushButton* button, QTableView* view, const std::string& text, const std::string& tableName);
 	void reloadTable(QTableView* view, const std::string& text, const QStringList& headers);
+	void addEntry(QPushButton* button, QTableView* view, const std::string& text, const std::string& tableName);
+	void removeEntry(QPushButton* button, QTableView* view, const std::string& text, const std::string& tableName);
 };

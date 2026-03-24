@@ -17,8 +17,9 @@ EntryProperty::EntryProperty(sqlite3* database, QWidget* parent)
 	ui->setupUi(this);
 	setDatabase(database);
 	setupUiLocal(ui->tableView_entry, "EntryProperty");
-	addEntry(ui->pushButton_add, ui->tableView_entry, "EntryProperty", "properties");
 	reloadTable(ui->tableView_entry, "EntryProperty", getHeadersFromJson("EntryProperty"));
+	addEntry(ui->pushButton_add, ui->tableView_entry, "EntryProperty", "properties");
+	removeEntry(ui->pushButton_remove, ui->tableView_entry, "EntryProperty", "properties");
 }
 
 EntryProperty::~EntryProperty()

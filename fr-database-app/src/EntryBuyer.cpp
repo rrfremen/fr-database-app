@@ -17,8 +17,9 @@ EntryBuyer::EntryBuyer(sqlite3* database, QWidget* parent)
 	ui->setupUi(this);
 	setDatabase(database);
 	setupUiLocal(ui->tableView_entry, "EntryBuyer");
-	addEntry(ui->pushButton_add, ui->tableView_entry, "EntryBuyer", "buyer");
 	reloadTable(ui->tableView_entry, "EntryBuyer", getHeadersFromJson("EntryBuyer"));
+	addEntry(ui->pushButton_add, ui->tableView_entry, "EntryBuyer", "buyer");
+	removeEntry(ui->pushButton_remove, ui->tableView_entry, "EntryBuyer", "buyer");
 }
 
 EntryBuyer::~EntryBuyer()

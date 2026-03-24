@@ -12,6 +12,8 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QHeaderView>
+#include <QMessageBox>
+#include <QModelIndex>
 
 // internal libraries
 #include "../include/EntryBaseClass.h"
@@ -46,34 +48,17 @@ void EntryBaseClass::setupUiLocal(QTableView* table, const std::string& text) {
 
 	table->horizontalHeader()->setVisible(true);
 	table->verticalHeader()->setVisible(false);
+
+	table->setSelectionBehavior(QAbstractItemView::SelectRows); // whole row selected
+	table->setSelectionMode(QAbstractItemView::SingleSelection); // only one row selected
 }
-
-/*void EntryBaseClass::setupUiLocal(QTableView* table, const std::string& text) {
-	std::ifstream file("./assets/config.json");
-	nlohmann::json j;
-	file >> j;
-
-	// retrieve headers
-	std::vector<std::string> headers = j["listCols"][text];
-	QStringList qheaders;
-	for (const auto& h : headers)
-		qheaders << QString::fromStdString(h);
-
-	// set placeholder model
-	QStandardItemModel* placeholderModel = new QStandardItemModel();
-	placeholderModel->setHorizontalHeaderLabels(qheaders);
-	table->setModel(placeholderModel);
-	LOG("Placeholder model for " << text << " created");
-
-	table->horizontalHeader()->setVisible(true);
-	table->verticalHeader()->setVisible(false);
-}*/
 
 // setting the database
 void EntryBaseClass::setDatabase(sqlite3* database) {
 	db = database;
 }
 
+// add new informations
 void EntryBaseClass::addEntry(QPushButton* button, QTableView* view, const std::string& text, const std::string& tableName)
 {
 	connect(button, &QPushButton::clicked, this, [=]() { // show pop-up window, get input and insert into database
@@ -124,7 +109,7 @@ void EntryBaseClass::addEntry(QPushButton* button, QTableView* view, const std::
 				if (value.isEmpty())
 					return;
 
-				value.replace("'", "''");
+				value.replace("'", "'");
 				values << "'" + value + "'";
 			}
 
@@ -137,21 +122,36 @@ void EntryBaseClass::addEntry(QPushButton* button, QTableView* view, const std::
 			}
 			sql += ");";
 
-			sqlite3_exec(db, sql.c_str(), nullptr, nullptr, nullptr);
+			int rc = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, nullptr); // save into database
 
-			LOG("Successfully added new information");
-
-			reloadTable(view, tableName, headers);
+			if (rc == SQLITE_OK)
+			{
+				LOG("Successfully inserted new informations");
+				reloadTable(view, tableName, headers);
+			}
+			else
+			{
+				LOG("Insert failed: " << sqlite3_errmsg(db));
+			}
 		}
-		else {
+		else 
+		{
 			LOG("Canceled adding new information");
 		}
 	});
 }
 
+// reload the database each time the application is opened without overwrite the existing model
 void EntryBaseClass::reloadTable(QTableView* view, const std::string& tableName, const QStringList& headers)
 {
-	QStandardItemModel* model = new QStandardItemModel(view);
+	QStandardItemModel* model = qobject_cast<QStandardItemModel*>(view->model());
+	if (!model)
+	{
+		model = new QStandardItemModel(view);
+		view->setModel(model);
+	}
+
+	model->clear();
 	model->setHorizontalHeaderLabels(headers);
 
 	std::string selectSQL = "SELECT * FROM " + tableName + ";";
@@ -177,7 +177,86 @@ void EntryBaseClass::reloadTable(QTableView* view, const std::string& tableName,
 
 	sqlite3_finalize(stmt);
 
-	view->setModel(model);
 	view->horizontalHeader()->setVisible(true);
 	view->verticalHeader()->setVisible(false);
+}
+
+// remove informations from the table and database
+void EntryBaseClass::removeEntry(QPushButton* button, QTableView* view, const std::string& text, const std::string& tableName) 
+{
+	connect(button, &QPushButton::clicked, this, [=]() {
+
+		QStandardItemModel* model = qobject_cast<QStandardItemModel*>(view->model());
+		if (!model)
+			return;
+
+		QModelIndex currentIndex = view->currentIndex();
+		if (!currentIndex.isValid())
+		{
+			LOG("No row selected");
+			return;
+		}
+
+		int row = currentIndex.row();
+		QStringList headers = getHeadersFromJson(text);
+
+		if (headers.isEmpty())
+			return;
+
+		QMessageBox::StandardButton message;
+		message = QMessageBox::question(this, "Remove Entry", "Are you sure you want to delete this row?", QMessageBox::Yes | QMessageBox::No);
+
+		if (message == QMessageBox::No)
+		{
+
+			LOG("Cancel removing a row");
+			return;
+		}
+
+		std::string sql = "DELETE FROM " + tableName + " WHERE ";
+
+		for (int col = 0; col < headers.size(); ++col)
+		{
+			QStandardItem* item = model->item(row, col);
+			QString value = item ? item->text() : "";
+
+			value.replace("'", "''");
+
+			std::string columnName = headers[col].toStdString();
+
+			for (char& c : columnName)
+			{
+				c = std::tolower(static_cast<unsigned char>(c)); // change the column name from json to lowercase to match the database
+			}
+
+			for (char& c : columnName)
+			{
+				if (c == ' ')
+					c = '_'; // replace space with _ to match the database
+			}
+			
+			std::string columnValue = value.toStdString();
+
+			sql += columnName + " = '" + columnValue + "'";
+
+			if (col < headers.size() - 1)
+				sql += " AND ";
+		}
+
+		sql += ";";
+
+		int rc = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, nullptr); // delete the row from the database
+
+		if (rc == SQLITE_OK) // delete the row from the tableView 
+		{
+			reloadTable(view, tableName, headers);
+			view->clearSelection(); // removes higlights from previous row
+			view->setCurrentIndex(QModelIndex()); // removes cursor focus
+			LOG("Successfully removed a row");
+		}
+		else
+		{
+			LOG("Remove failed: " << sqlite3_errmsg(db));
+		}
+	});
 }
