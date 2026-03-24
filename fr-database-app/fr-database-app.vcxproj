@@ -11,20 +11,18 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <QtMoc Include="include\EntryBuyer.h" />
-    <QtMoc Include="include\EntryProperty.h" />
     <QtMoc Include="include\MainWindow.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\DatabaseSelection.cpp" />
     <ClCompile Include="src\EntryBaseClass.cpp" />
-    <ClCompile Include="src\EntryBuyer.cpp" />
-    <ClCompile Include="src\EntryProperty.cpp" />
+    <ClCompile Include="src\EntryForm.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\MainWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <QtUic Include="ui\EntryBuyer.ui" />
-    <QtUic Include="ui\EntryProperty.ui" />
+    <QtUic Include="ui\DatabaseSelection.ui" />
+    <QtUic Include="ui\EntryForm.ui" />
     <QtUic Include="ui\MainWindow.ui" />
   </ItemGroup>
   <ItemGroup>
@@ -33,6 +31,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="external\nlohmann-json.hpp" />
+    <QtMoc Include="include\DatabaseSelection.h" />
+    <QtMoc Include="include\EntryForm.h" />
     <ClInclude Include="include\Logger.h" />
     <QtMoc Include="include\EntryBaseClass.h" />
   </ItemGroup>

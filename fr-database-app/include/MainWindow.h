@@ -1,9 +1,21 @@
 #pragma once
 
+// built-in
+#include <unordered_map>
+#include <string>
+#include <QWidget>
+
+// external library
 #include <QMainWindow>
 
-#include "EntryBuyer.h"
-#include "EntryProperty.h"
+// internal library
+#include "EntryBaseClass.h"
+#include "DatabaseSelection.h"
+#include "EntryForm.h"
+
+// custom commands
+using dict_like_string = std::unordered_map<std::string, std::vector<std::string>>;
+
 
 namespace Ui {
 	class MainWindow;
@@ -19,9 +31,23 @@ public:
 
 private:
 	Ui::MainWindow* ui;
-	EntryBuyer* entryBuyer;
-	EntryProperty* entryProperty;
 
-	// functions
-	void setupUiLocal();
+	EntryBaseClass* entryBase;
+	DatabaseSelection* databaseSelection;
+
+	// variables
+	std::unordered_map<std::string, QWidget*> widgets;
+	dict_like_string defaultHeaders;
+
+	// signals
+	void onLoadDatabase(std::string db_name);
+	void onUnloadDatabase();
+
+	// Ui
+	void setupUiDatabaseSelection();
+	void setupSignals();
+	void getConfig();
+
+	// database
+	void setupDefaultDatabase();
 };
