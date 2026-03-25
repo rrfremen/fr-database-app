@@ -7,6 +7,7 @@
 
 // external library
 #include <QMainWindow>
+#include "../external/sqlite3.h"
 
 // internal library
 #include "EntryBaseClass.h"
@@ -50,4 +51,17 @@ private:
 
 	// database
 	void setupDefaultDatabase();
+
+	sqlite3* db = nullptr;
+	int rc = 0;
+	int errMsg = 0;
+
+	const char* buyer = nullptr;
+	const char* properties = nullptr;
+
+	void createDatabase();
+	void connectionMessage();
+	void createTable();
+	void buyerMessage();
+	void propertiesMessage();
 };

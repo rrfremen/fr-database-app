@@ -437,3 +437,8 @@ cmake_install.cmake
 compile_commands.json
 CTestTestfile.cmake
 Makefile
+
+# sqlite3
+*.db
+*.sqlite
+*.sqlite3

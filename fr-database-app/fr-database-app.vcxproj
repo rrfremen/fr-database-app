@@ -15,6 +15,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\DatabaseSelection.cpp" />
+    <ClCompile Include="external\sqlite3.c" />
     <ClCompile Include="src\EntryBaseClass.cpp" />
     <ClCompile Include="src\EntryForm.cpp" />
     <ClCompile Include="src\main.cpp" />
@@ -33,6 +34,7 @@
     <ClInclude Include="external\nlohmann-json.hpp" />
     <QtMoc Include="include\DatabaseSelection.h" />
     <QtMoc Include="include\EntryForm.h" />
+    <ClInclude Include="external\sqlite3.h" />
     <ClInclude Include="include\Logger.h" />
     <QtMoc Include="include\EntryBaseClass.h" />
   </ItemGroup>
