@@ -27,6 +27,9 @@ int main(int argc, char* argv[])
 	std::cout << "Starting Application" << std::endl;
 	QApplication app(argc, argv);
 
+	// uncomment once functionalities with threading are added
+	// qRegisterMetaType<sqlite3*>("sqlite3*");
+
 	MainWindow window;
 	window.show();
 

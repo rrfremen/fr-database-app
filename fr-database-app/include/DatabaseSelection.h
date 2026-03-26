@@ -7,6 +7,7 @@
 
 // external library
 #include <QWidget>
+#include "../external/sqlite3.h"
 
 // internal library
 #include "DatabaseSelection.h"
@@ -26,11 +27,10 @@ public:
 	DatabaseSelection(QWidget* parent = nullptr);
 	~DatabaseSelection();
 
-	// variables
-	
+	dict_like_string defaultHeaders;
 
 signals:
-	void signalLoadDB(std::string db_name);
+	void signalLoadDB(sqlite3* pointerDB, std::string titleDB);
 	void signalUnloadDB();
 
 private:
@@ -39,13 +39,19 @@ private:
 	std::vector<std::string> listAvailDatabase;
 	dict_like_string newHeaders;
 
+	// database
 	bool newDefault = false;
+	sqlite3* currentDB = nullptr;
+	std::string folderPathDB = "localDatabase";
 
 	// functions
-	void setupUiSignals();
+	void initUi();
+	void setupConnections();
 	void populateDatabaseComboBox();
 	void onNewDatabase();
 	void onLoadDatabase();
 	void onUnloadDatabase();
-	void createDatabase();
+	int openDatabase(std::string fileName);
+	void createDatabase(std::string newTitle);
+	void createDatabaseTables(std::string newTitle);
 };

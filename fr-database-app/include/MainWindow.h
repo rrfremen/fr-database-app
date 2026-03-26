@@ -10,7 +10,6 @@
 #include "../external/sqlite3.h"
 
 // internal library
-#include "EntryBaseClass.h"
 #include "DatabaseSelection.h"
 #include "EntryForm.h"
 
@@ -33,7 +32,6 @@ public:
 private:
 	Ui::MainWindow* ui;
 
-	EntryBaseClass* entryBase;
 	DatabaseSelection* databaseSelection;
 
 	// variables
@@ -41,27 +39,16 @@ private:
 	dict_like_string defaultHeaders;
 
 	// signals
-	void onLoadDatabase(std::string db_name);
-	void onUnloadDatabase();
+	void receiveLoadDatabase(sqlite3* pointerDB, std::string dbTitle);
+	void receiveUnloadDatabase();
 
 	// Ui
 	void setupUiDatabaseSelection();
-	void setupSignals();
+	void setupConnections();
 	void getConfig();
 
 	// database
-	void setupDefaultDatabase();
-
-	sqlite3* db = nullptr;
-	int rc = 0;
-	int errMsg = 0;
-
-	const char* buyer = nullptr;
-	const char* properties = nullptr;
-
-	void createDatabase();
-	void connectionMessage();
-	void createTable();
-	void buyerMessage();
-	void propertiesMessage();
+	sqlite3* currentDB = nullptr;
+	std::string currentDBTitle;
+	void setupDatabase();
 };
