@@ -34,7 +34,9 @@ private:
 	QStringList currentHeaders;
 	void updateHeaders();
 
+	void initUi();
 	void setupConnections();
 	void addEntry();
+	void removeEntry();
 	void reloadTable();
 };

@@ -12,6 +12,8 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QHeaderView>
+#include <QMessageBox>
+#include <QModelIndex>
 
 // internal libraries
 #include "../include/EntryForm.h"
@@ -36,9 +38,18 @@ EntryForm::~EntryForm()
 	delete ui;
 }
 
+void EntryForm::initUi() {
+	ui->tableView_entry->horizontalHeader()->setVisible(true);
+	ui->tableView_entry->verticalHeader()->setVisible(false);
+	ui->tableView_entry->setSelectionBehavior(QAbstractItemView::SelectRows);
+	ui->tableView_entry->setSelectionMode(QAbstractItemView::SingleSelection);
+}
+
 void EntryForm::setupConnections() {
 	connect(ui->pushButton_add, &QPushButton::clicked,
 			this, &EntryForm::addEntry);
+	connect(ui->pushButton_remove, &QPushButton::clicked,
+			this, &EntryForm::removeEntry);
 }
 
 void EntryForm::updateHeaders() {
@@ -102,7 +113,7 @@ void EntryForm::addEntry()
 			if (value.isEmpty())
 				return;
 
-			value.replace("'", "''");
+			value.replace("'", "'");
 			values << "'" + value + "'";
 		}
 
@@ -115,20 +126,103 @@ void EntryForm::addEntry()
 		}
 		sql += ");";
 
-		sqlite3_exec(currentDB, sql.c_str(), nullptr, nullptr, nullptr);
+		int rc = sqlite3_exec(currentDB, sql.c_str(), nullptr, nullptr, nullptr);
 
-		LOG("Successfully added new information");
-
-		reloadTable();
+		if (rc == SQLITE_OK) {
+			LOG("Successfully added new information");
+			reloadTable();
+		} else {
+			LOG("Insert failed: " << sqlite3_errmsg(currentDB));
+		}
 	}
 	else {
 		LOG("Canceled adding new information");
 	}
 }
 
+void EntryForm::removeEntry()
+{
+	QStandardItemModel* model = qobject_cast<QStandardItemModel*>(ui->tableView_entry->model());
+	if (!model)
+		return;
+
+	QModelIndex currentIndex = ui->tableView_entry->currentIndex();
+	if (!currentIndex.isValid())
+	{
+		LOG("No row selected");
+		return;
+	}
+
+	int row = currentIndex.row();
+
+	if (currentHeaders.isEmpty())
+		return;
+
+	QMessageBox::StandardButton message;
+	message = QMessageBox::question(this, "Remove Entry", "Are you sure you want to delete this row?", QMessageBox::Yes | QMessageBox::No);
+
+	if (message == QMessageBox::No)
+	{
+
+		LOG("Cancel removing a row");
+		return;
+	}
+
+	std::string sql = "DELETE FROM " + tableName + " WHERE ";
+
+	for (int col = 0; col < currentHeaders.size(); ++col)
+	{
+		QStandardItem* item = model->item(row, col);
+		QString value = item ? item->text() : "";
+
+		value.replace("'", "''");
+
+		std::string columnName = currentHeaders[col].toStdString();
+
+		for (char& c : columnName)
+		{
+			c = std::tolower(static_cast<unsigned char>(c)); // change the column name from json to lowercase to match the database
+		}
+
+		for (char& c : columnName)
+		{
+			if (c == ' ')
+				c = '_'; // replace space with _ to match the database
+		}
+
+		std::string columnValue = value.toStdString();
+
+		sql += columnName + " = '" + columnValue + "'";
+
+		if (col < currentHeaders.size() - 1)
+			sql += " AND ";
+	}
+
+	sql += ";";
+
+	int rc = sqlite3_exec(currentDB, sql.c_str(), nullptr, nullptr, nullptr); // delete the row from the database
+
+	if (rc == SQLITE_OK) // delete the row from the tableView 
+	{
+		reloadTable();
+		ui->tableView_entry->clearSelection(); // removes higlights from previous row
+		ui->tableView_entry->setCurrentIndex(QModelIndex()); // removes cursor focus
+		LOG("Successfully removed a row");
+	}
+	else
+	{
+		LOG("Remove failed: " << sqlite3_errmsg(currentDB));
+	}
+}
+
 void EntryForm::reloadTable()
 {
-	QStandardItemModel* model = new QStandardItemModel(ui->tableView_entry);
+	QStandardItemModel* model = qobject_cast<QStandardItemModel*>(ui->tableView_entry->model());
+	if (!model) {
+		model = new QStandardItemModel(ui->tableView_entry);
+		ui->tableView_entry->setModel(model);
+	}
+	model->clear();
 	model->setHorizontalHeaderLabels(currentHeaders);
 
 	std::string selectSQL = "SELECT * FROM " + tableName + ";";
@@ -153,8 +247,4 @@ void EntryForm::reloadTable()
 	}
 
 	sqlite3_finalize(stmt);
-
-	ui->tableView_entry->setModel(model);
-	ui->tableView_entry->horizontalHeader()->setVisible(true);
-	ui->tableView_entry->verticalHeader()->setVisible(false);
 }
