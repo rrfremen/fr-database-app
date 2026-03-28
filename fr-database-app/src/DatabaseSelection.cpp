@@ -16,7 +16,6 @@ namespace fs = std::filesystem;
 #include "ui_DatabaseSelection.h"
 #include "../include/Logger.h"
 
-
 DatabaseSelection::DatabaseSelection(QWidget* parent)
 	: QWidget(parent)
 	, ui(new Ui::DatabaseSelection)
@@ -184,12 +183,12 @@ void DatabaseSelection::createDatabaseTables(std::string newTitle) {
 	client += "id INTEGER PRIMARY KEY, ";
 	for (const std::string& value : clientVector) {
 		std::string header = value;
-		if (header.find("num:") != std::string::npos) {
+		if (header.find("num:") == 0) { // allowing the headers name to have space, ex: Date of Birth 
 			header.erase(0, 4);
-			client += header + " INTEGER, ";
+			client += "\"" + header + "\" INTEGER, ";
 		}
 		else {
-			client += header + " TEXT, ";
+			client += "\"" + header + "\" TEXT, ";
 		}
 	}
 	if (client.size() >= 2) {
@@ -203,12 +202,12 @@ void DatabaseSelection::createDatabaseTables(std::string newTitle) {
 	product += "id INTEGER PRIMARY KEY, ";
 	for (const std::string& value : productVector) {
 		std::string header = value;
-		if (header.find("num:") != std::string::npos) {
+		if (header.find("num:") == 0) { // allowing the headers name to have space, ex: Date of Buying
 			header.erase(0, 4);
-			product += header + " INTEGER, ";
+			product += "\"" + header + "\" INTEGER, ";
 		}
 		else {
-			product += header + " TEXT, ";
+			product += "\"" + header + "\" TEXT, ";
 		}
 	}
 	if (product.size() >= 2) {

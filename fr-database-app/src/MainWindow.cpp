@@ -4,7 +4,7 @@
 
 // external libraries
 #include "./external/nlohmann-json.hpp"
-#include "../external/sqlite3.h"
+#include "./external/sqlite3.h"
 
 // internal libraries
 #include "../include/MainWindow.h"
@@ -12,7 +12,6 @@
 
 // internal Ui libraries
 #include "ui_MainWindow.h"
-
 
 MainWindow::MainWindow(QWidget* parent)
 	: QMainWindow(parent)
@@ -34,6 +33,7 @@ MainWindow::~MainWindow()
 void MainWindow::setupUiDatabaseSelection() {
 	databaseSelection = new DatabaseSelection();
 	ui->tabWidget_centralWidget->addTab(databaseSelection, "Database");
+
 	// pass default headers from config to database selection
 	// TODO: find a robuster way maybe
 	databaseSelection->defaultHeaders["defaultHeadersClient"] = defaultHeaders["definitionClient"];

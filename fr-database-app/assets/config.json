@@ -1,7 +1,7 @@
 {
   "listCols": {
-    "EntryBuyer": [ "Name", "Contact Details", "Adress", "Budget", "Keywords" ],
-    "EntryProperty": [ "Id", "Date", "Adress", "Price", "Rooms", "Area", "Keywords" ]
+    "EntryBuyer": [ "Name", "Contact Details", "Address", "Budget", "Keywords" ],
+    "EntryProperty": [ "Id", "Date", "Address", "Price", "Rooms", "Area", "Keywords" ]
   },
   "defaultDatabase": {
     "definitionClient": [

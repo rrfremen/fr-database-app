@@ -38,5 +38,6 @@ private:
 	void setupConnections();
 	void addEntry();
 	void removeEntry();
+	void editEntry();
 	void reloadTable();
 };

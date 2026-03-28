@@ -29,6 +29,7 @@ EntryForm::EntryForm(QWidget* parent, std::string tabName, sqlite3* database)
 	currentDB = database;
 
 	setupConnections();
+	initUi();
 	updateHeaders();
 	reloadTable();
 }
@@ -43,6 +44,7 @@ void EntryForm::initUi() {
 	ui->tableView_entry->verticalHeader()->setVisible(false);
 	ui->tableView_entry->setSelectionBehavior(QAbstractItemView::SelectRows);
 	ui->tableView_entry->setSelectionMode(QAbstractItemView::SingleSelection);
+	ui->tableView_entry->setEditTriggers(QAbstractItemView::NoEditTriggers); // no direct editing from mouse or keyboard
 }
 
 void EntryForm::setupConnections() {
@@ -50,6 +52,8 @@ void EntryForm::setupConnections() {
 			this, &EntryForm::addEntry);
 	connect(ui->pushButton_remove, &QPushButton::clicked,
 			this, &EntryForm::removeEntry);
+	connect(ui->pushButton_edit, &QPushButton::clicked,
+			this, &EntryForm::editEntry);
 }
 
 void EntryForm::updateHeaders() {
@@ -78,9 +82,13 @@ void EntryForm::addEntry()
 
 	QVBoxLayout* mainLayout = new QVBoxLayout(&dialog);
 	QList<QLineEdit*> inserts;
+	QStringList insertHeaders;
 
 	for (const QString& header : currentHeaders)
 	{
+		if (header.compare("id", Qt::CaseInsensitive) == 0) // skip id column in pop-up window
+			continue;
+
 		QLabel* label = new QLabel(header, &dialog);
 		QLineEdit* insert = new QLineEdit(&dialog);
 
@@ -88,6 +96,7 @@ void EntryForm::addEntry()
 		mainLayout->addWidget(insert);
 
 		inserts.append(insert);
+		insertHeaders.append(header);
 	}
 
 	// done and cancel button inside the pop-up window
@@ -106,18 +115,28 @@ void EntryForm::addEntry()
 	if (dialog.exec() == QDialog::Accepted)
 	{
 		QStringList values;
+		QStringList quotedHeaders; // for the quoted headers, where headers contains space in between ex: "Date of Birth"
 
-		for (QLineEdit* insert : inserts)
+		for (int i = 0; i < inserts.size(); ++i)
 		{
-			QString value = insert->text().trimmed();
+			QString value = inserts[i]->text().trimmed();
 			if (value.isEmpty())
 				return;
 
-			value.replace("'", "'");
+			value.replace("'", "''");
 			values << "'" + value + "'";
+			quotedHeaders << "\"" + insertHeaders[i] + "\"";
 		}
 
-		std::string sql = "INSERT INTO " + tableName + " VALUES (";
+		std::string sql = "INSERT INTO " + tableName + " (";
+		for (int i = 0; i < quotedHeaders.size(); ++i)
+		{
+			sql += quotedHeaders[i].toStdString();
+			if (i < quotedHeaders.size() - 1)
+				sql += ", ";
+		}
+		sql += ") VALUES (";
+
 		for (int i = 0; i < values.size(); ++i)
 		{
 			sql += values[i].toStdString();
@@ -178,21 +197,9 @@ void EntryForm::removeEntry()
 		value.replace("'", "''");
 
 		std::string columnName = currentHeaders[col].toStdString();
-
-		for (char& c : columnName)
-		{
-			c = std::tolower(static_cast<unsigned char>(c)); // change the column name from json to lowercase to match the database
-		}
-
-		for (char& c : columnName)
-		{
-			if (c == ' ')
-				c = '_'; // replace space with _ to match the database
-		}
-
 		std::string columnValue = value.toStdString();
 
-		sql += columnName + " = '" + columnValue + "'";
+		sql += "\"" + columnName + "\" = '" + columnValue + "'";
 
 		if (col < currentHeaders.size() - 1)
 			sql += " AND ";
@@ -228,14 +235,17 @@ void EntryForm::reloadTable()
 	std::string selectSQL = "SELECT * FROM " + tableName + ";";
 	sqlite3_stmt* stmt = nullptr; // setting and holding the query from the table
 
-	if (sqlite3_prepare_v2(currentDB, selectSQL.c_str(), -1, &stmt, nullptr) != SQLITE_OK)
+	if (sqlite3_prepare_v2(currentDB, selectSQL.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
+		LOG("Reload failed: " << sqlite3_errmsg(currentDB));
 		return;
+	}
 
 	int row = 0;
-	int colCount = currentHeaders.size();
 
 	while (sqlite3_step(stmt) == SQLITE_ROW)
 	{
+		int colCount = sqlite3_column_count(stmt);
+
 		for (int col = 0; col < colCount; ++col)
 		{
 			const unsigned char* text = sqlite3_column_text(stmt, col);
@@ -245,6 +255,118 @@ void EntryForm::reloadTable()
 		}
 		row++;
 	}
-
 	sqlite3_finalize(stmt);
+	ui->tableView_entry->resizeColumnsToContents(); // allowing the table to adjust to the contents of the table
+}
+
+void EntryForm::editEntry()
+{
+	QStandardItemModel* model = qobject_cast<QStandardItemModel*>(ui->tableView_entry->model());
+	if (!model)
+		return;
+
+	QModelIndex currentIndex = ui->tableView_entry->currentIndex();
+	if (!currentIndex.isValid())
+	{
+		LOG("No row selected");
+		return;
+	}
+
+	int row = currentIndex.row();
+
+	QStandardItem* idItem = model->item(row, 0);
+	if (!idItem)
+	{
+		LOG("No id found for selected row");
+		return;
+	}
+
+	QString idValue = idItem->text();
+
+	if (currentHeaders.isEmpty())
+		return;
+
+	QDialog dialog(this);
+	dialog.setWindowTitle("Edit Entry");
+
+	QVBoxLayout* mainLayout = new QVBoxLayout(&dialog);
+	QList<QLineEdit*> edits;
+	QStringList editableHeaders;
+
+	for (int col = 0; col < currentHeaders.size(); ++col) 
+	{
+		QString header = currentHeaders[col];
+
+		if (header.compare("id", Qt::CaseInsensitive) == 0) 
+			continue;
+
+		QStandardItem* item = model->item(row, col);
+		QString currentValue = item ? item->text() : "";
+
+		QLabel* label = new QLabel(header, &dialog);
+		QLineEdit* edit = new QLineEdit(&dialog);
+		edit->setText(currentValue);
+
+		mainLayout->addWidget(label);
+		mainLayout->addWidget(edit);
+
+		edits.append(edit);
+		editableHeaders.append(header);
+	}
+
+	QPushButton* saveButton = new QPushButton("Save", &dialog);
+	QPushButton* cancelButton = new QPushButton("Cancel", &dialog);
+
+	QHBoxLayout* buttonLayout = new QHBoxLayout();
+	buttonLayout->addWidget(saveButton);
+	buttonLayout->addWidget(cancelButton);
+	mainLayout->addLayout(buttonLayout);
+
+	connect(saveButton, &QPushButton::clicked, &dialog, &QDialog::accept);
+	connect(cancelButton, &QPushButton::clicked, &dialog, &QDialog::reject);
+
+	if (dialog.exec() == QDialog::Accepted)
+	{
+		QStringList newValues;
+
+		for (QLineEdit* edit : edits)
+		{
+			QString value = edit->text().trimmed();
+			if (value.isEmpty())
+				return;
+			
+			value.replace("'", "''");
+			newValues << value;
+		}
+
+		std::string sql = "UPDATE " + tableName + " SET";
+
+		for (int i = 0; i < editableHeaders.size(); ++i)
+		{
+			std::string columnName = editableHeaders[i].toStdString();
+			std::string columnValue = newValues[i].toStdString();
+
+			sql += "\"" + columnName + "\" = '" + columnValue + "'";
+
+			if (i < editableHeaders.size() - 1)
+				sql += ", ";
+		}
+
+		sql += " WHERE id = " + idValue.toStdString() + ";";
+
+		int rc = sqlite3_exec(currentDB, sql.c_str(), nullptr, nullptr, nullptr);
+		if (rc == SQLITE_OK)
+		{
+			LOG("Sucessfully edited a row");
+			reloadTable();
+			ui->tableView_entry->clearSelection();
+			ui->tableView_entry->setCurrentIndex(QModelIndex());
+		}
+		else {
+			LOG("Edit failed: " << sqlite3_errmsg(currentDB));
+		}
+	}
+	else {
+		LOG("Cancelled editing a row");
+	}
 }
