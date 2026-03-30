@@ -31,6 +31,7 @@ EntryForm::EntryForm(QWidget* parent, std::string tabName, sqlite3* database)
 	setupConnections();
 	initUi();
 	updateHeaders();
+	loadSearchHeaders();
 	reloadTable();
 }
 
@@ -54,6 +55,10 @@ void EntryForm::setupConnections() {
 			this, &EntryForm::removeEntry);
 	connect(ui->pushButton_edit, &QPushButton::clicked,
 			this, &EntryForm::editEntry);
+	connect(ui->pushButton_search, &QPushButton::clicked,
+			this, &EntryForm::searchEntry);
+	connect(ui->lineEdit_searchBar, &QLineEdit::textChanged,
+			this, &EntryForm::onSearchTextChanged);
 }
 
 void EntryForm::updateHeaders() {
@@ -222,7 +227,8 @@ void EntryForm::removeEntry()
 	}
 }
 
-void EntryForm::reloadTable()
+// load table from query 
+void EntryForm::loadTableFromQuery(const std::string& sql)
 {
 	QStandardItemModel* model = qobject_cast<QStandardItemModel*>(ui->tableView_entry->model());
 	if (!model) {
@@ -232,11 +238,10 @@ void EntryForm::reloadTable()
 	model->clear();
 	model->setHorizontalHeaderLabels(currentHeaders);
 
-	std::string selectSQL = "SELECT * FROM " + tableName + ";";
 	sqlite3_stmt* stmt = nullptr; // setting and holding the query from the table
 
-	if (sqlite3_prepare_v2(currentDB, selectSQL.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
-		LOG("Reload failed: " << sqlite3_errmsg(currentDB));
+	if (sqlite3_prepare_v2(currentDB, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
+		LOG("Query failed: " << sqlite3_errmsg(currentDB));
 		return;
 	}
 
@@ -257,6 +262,12 @@ void EntryForm::reloadTable()
 	}
 	sqlite3_finalize(stmt);
 	ui->tableView_entry->resizeColumnsToContents(); // allowing the table to adjust to the contents of the table
+}
+
+void EntryForm::reloadTable()
+{
+	std::string selectSQL = "SELECT * FROM " + tableName + ";";
+	loadTableFromQuery(selectSQL);
 }
 
 void EntryForm::editEntry()
@@ -370,3 +381,56 @@ void EntryForm::editEntry()
 		LOG("Cancelled editing a row");
 	}
 }
+
+// search combo box
+void EntryForm::loadSearchHeaders()
+{
+	ui->comboBox_searchColumn->clear();
+
+	for (const QString& header : currentHeaders)
+	{
+		ui->comboBox_searchColumn->addItem(header);
+	}
+}
+
+// execute search button 
+void EntryForm::searchEntry()
+{
+	QString selectedHeader = ui->comboBox_searchColumn->currentText();
+	QString searchText = ui->lineEdit_searchBar->text().trimmed();
+
+	if (selectedHeader.isEmpty())
+	{
+		LOG("No header selected for search");
+		return;
+	}
+
+	if (searchText.isEmpty())
+	{
+		reloadTable(); 
+		return;
+	}
+	
+	searchText.replace("'", "''");
+
+	std::string selectSQL = "SELECT * FROM " + tableName +
+		" WHERE \"" + selectedHeader.toStdString() +
+		"\" LIKE '%" + searchText.toStdString() + "%';";
+
+	loadTableFromQuery(selectSQL);
+}
+
+// live searching while typing and auto reloading full table when the search bar is cleared
+void EntryForm::onSearchTextChanged(const QString& text)
+{
+	if (text.trimmed().isEmpty())
+	{
+		reloadTable(); // reset table and show everything again
+	}
+	else {
+		searchEntry(); // search the information 
+	}
+}
+
+
+
