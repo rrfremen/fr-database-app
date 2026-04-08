@@ -7,6 +7,8 @@
 
 // external library
 #include <QWidget>
+#include <QString>
+#include <QJsonObject>
 #include "../external/sqlite3.h"
 
 // internal library
@@ -54,4 +56,11 @@ private:
 	int openDatabase(std::string fileName);
 	void createDatabase(std::string newTitle);
 	void createDatabaseTables(std::string newTitle);
+
+	// example database
+	void ensureExampleDatabaseExists();
+	bool createExampleDatabaseFromJson(const QString& filePath);
+	bool createTableFromJson(sqlite3* db, const QJsonObject& tableObj);
+	bool insertRowsFromJson(sqlite3* db, const QJsonObject& tableObj);
+	std::string escapeSqlValue(const std::string& value); // protects sql query from breaking when the text contain ' (single quote)
 };

@@ -1,0 +1,338 @@
+{
+	"tables": [
+		{
+			"name": "example_Client",
+			"columns": [
+				{
+					"name": "First Name",
+					"type": "TEXT"
+				},
+				{
+					"name": "Last Name",
+					"type": "TEXT"
+				},
+				{
+					"name": "Date of Birth",
+					"type": "TEXT"
+				},
+				{
+					"name": "Budget",
+					"type": "INTEGER"
+				},
+				{
+					"name": "Keywords",
+					"type": "TEXT"
+				}
+			],
+			"rows": [
+				{
+					"First Name": "Jame",
+					"Last Name": "Massey",
+					"Date of Birth": "12.03.1995",
+					"Budget": 800,
+					"Keywords": "music, travel, photography"
+				},
+				{
+					"First Name": "Jarvis",
+					"Last Name": "Romero",
+					"Date of Birth": "25.07.1990",
+					"Budget": 1200,
+					"Keywords": "gaming, tech, gadgets"
+				},
+				{
+					"First Name": "Alex",
+					"Last Name": "Calhoun",
+					"Date of Birth": "02.11.1994",
+					"Budget": 500,
+					"Keywords": "books, writing, quiet"
+				},
+				{
+					"First Name": "Lourdes",
+					"Last Name": "Pham",
+					"Date of Birth": "19.01.1988",
+					"Budget": 1500,
+					"Keywords": "fitness, outdoor, health"
+				},
+				{
+					"First Name": "Hazel",
+					"Last Name": "Young",
+					"Date of Birth": "30.05.1998",
+					"Budget": 700,
+					"Keywords": "music, gaming, movies"
+				},
+				{
+					"First Name": "Ella",
+					"Last Name": "Hester",
+					"Date of Birth": "14.09.1996",
+					"Budget": 2000,
+					"Keywords": "fashion, shopping, beauty"
+				},
+				{
+					"First Name": "Marta",
+					"Last Name": "Blake",
+					"Date of Birth": "08.12.1985",
+					"Budget": 900,
+					"Keywords": "yoga, wellness, nature"
+				},
+				{
+					"First Name": "Anastasia",
+					"Last Name": "Robbins",
+					"Date of Birth": "21.04.1993",
+					"Budget": 500,
+					"Keywords": "music, dance, art"
+				},
+				{
+					"First Name": "Marietta",
+					"Last Name": "Small",
+					"Date of Birth": "11.02.1976",
+					"Budget": 500,
+					"Keywords": "food, cooking, kitchen"
+				},
+				{
+					"First Name": "Dan",
+					"Last Name": "Allison",
+					"Date of Birth": "10.06.1991",
+					"Budget": 600,
+					"Keywords": "gaming, coding, tech"
+				},
+				{
+					"First Name": "Rachael",
+					"Last Name": "Krueger",
+					"Date of Birth": "27.02.1985",
+					"Budget": 1400,
+					"Keywords": "photography, travel, art"
+				},
+				{
+					"First Name": "Haley",
+					"Last Name": "Knight",
+					"Date of Birth": "15.08.1989",
+					"Budget": 400,
+					"Keywords": "reading, chess, strategy"
+				},
+				{
+					"First Name": "Nathan",
+					"Last Name": "Andrade",
+					"Date of Birth": "03.03.1987",
+					"Budget": 1000,
+					"Keywords": "sports, fitness, outdoor"
+				},
+				{
+					"First Name": "Fletcher",
+					"Last Name": "Chaney",
+					"Date of Birth": "28.01.1990",
+					"Budget": 1400,
+					"Keywords": "tech, gadgets, coding"
+				},
+				{
+					"First Name": "Keenan",
+					"Last Name": "Kerr",
+					"Date of Birth": "30.11.1994",
+					"Budget": 2000,
+					"Keywords": "cars, luxury, business"
+				},
+				{
+					"First Name": "Thaddeus",
+					"Last Name": "Rios",
+					"Date of Birth": "07.07.1996",
+					"Budget": 1700,
+					"Keywords": "fashion, design, art"
+				},
+				{
+					"First Name": "Ida",
+					"Last Name": "Dillon",
+					"Date of Birth": "11.12.1999",
+					"Budget": 900,
+					"Keywords": "music, social, dancing"
+				},
+				{
+					"First Name": "Moises",
+					"Last Name": "Lucas",
+					"Date of Birth": "22.06.1998",
+					"Budget": 1600,
+					"Keywords": "travel, blogging, photography"
+				},
+				{
+					"First Name": "Deana",
+					"Last Name": "Suarez",
+					"Date of Birth": "19.09.1986",
+					"Budget": 600,
+					"Keywords": "movies, cinema, acting"
+				},
+				{
+					"First Name": "Karina",
+					"Last Name": "Mcknight",
+					"Date of Birth": "16.05.1993",
+					"Budget": 750,
+					"Keywords": "yoga, health, relaxation"
+				}
+			]
+		},
+		{
+			"name": "example_Product",
+			"columns": [
+				{
+					"name": "Name",
+					"type": "TEXT"
+				},
+				{
+					"name": "Type",
+					"type": "TEXT"
+				},
+				{
+					"name": "Description",
+					"type": "TEXT"
+				},
+				{
+					"name": "Price",
+					"type": "INTEGER"
+				},
+				{
+					"name": "Keywords",
+					"type": "TEXT"
+				}
+			],
+			"rows": [
+				{
+					"Name": "Gaming Laptop",
+					"Type": "Electronics",
+					"Description": "High performance laptop for gaming",
+					"Price": 1100,
+					"Keywords": "gaming, tech, performance"
+				},
+				{
+					"Name": "Smartphone Pro",
+					"Type": "Electronics",
+					"Description": "Latest smartphone with advanced features",
+					"Price": 900,
+					"Keywords": "tech, gadgets, mobile"
+				},
+				{
+					"Name": "Mountain Bike",
+					"Type": "Sports",
+					"Description": "Durable bike for outdoor trails",
+					"Price": 700,
+					"Keywords": "outdoor, fitness, sports"
+				},
+				{
+					"Name": "Yoga Mat",
+					"Type": "Fitness",
+					"Description": "Comfortable mat for yoga exercises",
+					"Price": 50,
+					"Keywords": "yoga, wellness, health"
+				},
+				{
+					"Name": "DSLR Camera",
+					"Type": "Electronics",
+					"Description": "Professional camera for photography",
+					"Price": 1200,
+					"Keywords": "photography, art, travel"
+				},
+				{
+					"Name": "Cookware Set",
+					"Type": "Home",
+					"Description": "Complete set for cooking",
+					"Price": 300,
+					"Keywords": "cooking, food, kitchen"
+				},
+				{
+					"Name": "Luxury Watch",
+					"Type": "Fashion",
+					"Description": "Elegant watch for formal wear",
+					"Price": 1800,
+					"Keywords": "fashion, luxury, style"
+				},
+				{
+					"Name": "Car Tool Kit",
+					"Type": "Automotive",
+					"Description": "Essential tools for car repair",
+					"Price": 200,
+					"Keywords": "cars, tools, mechanics"
+				},
+				{
+					"Name": "Bluetooth Speaker",
+					"Type": "Electronics",
+					"Description": "Portable speaker with high quality sound",
+					"Price": 150,
+					"Keywords": "music, gadgets, audio"
+				},
+				{
+					"Name": "Running Shoes",
+					"Type": "Sports",
+					"Description": "Lightweight shoes for running",
+					"Price": 120,
+					"Keywords": "fitness, sports, outdoor"
+				},
+				{
+					"Name": "Office Laptop",
+					"Type": "Electronics",
+					"Description": "Laptop for work and productivity",
+					"Price": 800,
+					"Keywords": "tech, work, productivity"
+				},
+				{
+					"Name": "Travel Backpack",
+					"Type": "Accessories",
+					"Description": "Backpack for travel and outdoor use",
+					"Price": 100,
+					"Keywords": "travel, outdoor, adventure"
+				},
+				{
+					"Name": "Makeup Kit",
+					"Type": "Beauty",
+					"Description": "Complete beauty and makeup set",
+					"Price": 250,
+					"Keywords": "beauty, fashion, style"
+				},
+				{
+					"Name": "Gaming Console",
+					"Type": "Electronics",
+					"Description": "Next-gen gaming console",
+					"Price": 500,
+					"Keywords": "gaming, entertainment, tech"
+				},
+				{
+					"Name": "Books Collection",
+					"Type": "Education",
+					"Description": "Set of popular novels",
+					"Price": 80,
+					"Keywords": "books, reading, writing"
+				},
+				{
+					"Name": "Fitness Tracker",
+					"Type": "Fitness",
+					"Description": "Track your daily activities",
+					"Price": 200,
+					"Keywords": "fitness, health, tech"
+				},
+				{
+					"Name": "Designer Handbag",
+					"Type": "Fashion",
+					"Description": "Stylish handbag for daily use",
+					"Price": 1500,
+					"Keywords": "fashion, shopping, luxury"
+				},
+				{
+					"Name": "Electric Guitar",
+					"Type": "Music",
+					"Description": "Guitar for music enthusiasts",
+					"Price": 600,
+					"Keywords": "music, instruments, art"
+				},
+				{
+					"Name": "Cinema Projector",
+					"Type": "Entertainment",
+					"Description": "Home cinema experience",
+					"Price": 700,
+					"Keywords": "movies, cinema, entertainment"
+				},
+				{
+					"Name": "Luxury Car Model",
+					"Type": "Automotive",
+					"Description": "High-end miniature car model",
+					"Price": 2000,
+					"Keywords": "cars, luxury, collection"
+				}
+			]
+		}
+	]
+}
