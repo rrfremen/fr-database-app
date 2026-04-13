@@ -261,7 +261,7 @@ void EntryForm::loadTableFromQuery(const std::string& sql)
 		row++;
 	}
 	sqlite3_finalize(stmt);
-	ui->tableView_entry->resizeColumnsToContents(); // allowing the table to adjust to the contents of the table
+	//ui->tableView_entry->resizeColumnsToContents(); // allowing the table to adjust to the contents of the table
 }
 
 void EntryForm::reloadTable()

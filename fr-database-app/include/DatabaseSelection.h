@@ -24,10 +24,8 @@ class DatabaseSelection : public QWidget
 	Q_OBJECT
 
 public:
-	DatabaseSelection(QWidget* parent = nullptr);
+	DatabaseSelection(QWidget* parent = nullptr, const dict_like_string& cfg = {});
 	~DatabaseSelection();
-
-	dict_like_string defaultHeaders;
 
 signals:
 	void signalLoadDB(sqlite3* pointerDB, std::string titleDB);
@@ -35,6 +33,7 @@ signals:
 
 private:
 	Ui::DatabaseSelection* ui;
+	const dict_like_string& config;
 
 	std::vector<std::string> listAvailDatabase;
 	dict_like_string newHeaders;
@@ -54,4 +53,5 @@ private:
 	int openDatabase(std::string fileName);
 	void createDatabase(std::string newTitle);
 	void createDatabaseTables(std::string newTitle);
+	bool userInputValid(QStringList inputs, std::string inputRules);
 };

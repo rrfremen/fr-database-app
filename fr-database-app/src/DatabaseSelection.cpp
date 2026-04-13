@@ -10,15 +10,17 @@ namespace fs = std::filesystem;
 #include <QPushButton>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
+#include <QMessageBox>
 
 // internal libraries
 #include "../include/DatabaseSelection.h"
 #include "ui_DatabaseSelection.h"
 #include "../include/Logger.h"
 
-DatabaseSelection::DatabaseSelection(QWidget* parent)
+DatabaseSelection::DatabaseSelection(QWidget* parent, const dict_like_string& cfg)
 	: QWidget(parent)
 	, ui(new Ui::DatabaseSelection)
+	, config(cfg)
 {
 	ui->setupUi(this);
 	initUi();
@@ -68,6 +70,9 @@ void DatabaseSelection::onNewDatabase() {
 	// TODO: refactor !
 	QDialog dialog(this);
 	dialog.setWindowTitle("Configuration for new Database");
+	QString newTitle;
+	QStringList clientParts;
+	QStringList productParts;
 
 	QVBoxLayout* layoutMain = new QVBoxLayout(&dialog);
 
@@ -100,16 +105,26 @@ void DatabaseSelection::onNewDatabase() {
 	layoutMain->addLayout(layoutButton);
 
 	connect(buttonCreate, &QPushButton::clicked,
-			&dialog, &QDialog::accept);
+			&dialog, [&] {
+				newTitle = insertDBTitle->text().trimmed();
+				clientParts = insertDBClientHeaders->text().split(",", Qt::SkipEmptyParts);
+				productParts = insertDBProductHeaders->text().split(",", Qt::SkipEmptyParts);
+
+				if (!userInputValid(QStringList(newTitle), config.at("validTitle")[0])) { return; };
+				if (!userInputValid(clientParts, config.at("validHeaders")[0])) { return; };
+				if (!userInputValid(productParts, config.at("validHeaders")[0])) { return; };
+
+				dialog.accept();
+			});
 	connect(buttonCancel, &QPushButton::clicked,
 			&dialog, &QDialog::reject);
 	connect(buttonDefault, &QPushButton::clicked,
 			&dialog, [=] {
 				QStringList clientHeaders;
 				QStringList productHeaders;
-				for (const auto& s : defaultHeaders["defaultHeadersClient"])
+				for (const auto& s : config.at("definitionClient"))
 					clientHeaders << QString::fromStdString(s);
-				for (const auto& s : defaultHeaders["defaultHeadersProduct"])
+				for (const auto& s : config.at("definitionProduct"))
 					productHeaders << QString::fromStdString(s);
 				insertDBClientHeaders->setText(clientHeaders.join(","));
 				insertDBProductHeaders->setText(productHeaders.join(","));
@@ -117,23 +132,21 @@ void DatabaseSelection::onNewDatabase() {
 
 	if (dialog.exec() == QDialog::Accepted) {
 		{
-			// TODO: check for forbidden words/characters and empty inputs not allowed
-			std::string newTitle = insertDBTitle->text().trimmed().toStdString();
-			newHeaders["newTitle"] = { newTitle };
-			QStringList parts = insertDBClientHeaders->text().split(",", Qt::SkipEmptyParts);
 			std::vector<std::string> holder;
-			for (const QString& p : parts)
+			for (const QString& p : clientParts)
 				holder.push_back(p.trimmed().toStdString());
-			newHeaders[newTitle + "_Client"] = holder;
 			holder.clear();
-			parts = insertDBProductHeaders->text().split(",", Qt::SkipEmptyParts);
-			for (const QString& p : parts)
+			for (const QString& p : productParts)
 				holder.push_back(p.trimmed().toStdString());
-			newHeaders[newTitle + "_Product"] = holder;
+
+			std::string newTitleString = newTitle.toStdString();
+			newHeaders["newTitle"] = { newTitleString };
+			newHeaders[newTitleString + "_Client"] = holder;
+			newHeaders[newTitleString + "_Product"] = holder;
 			//LOG(newHeaders["newTitle"]);
 			//LOG(newHeaders[newTitle + "_Client"]);
 			//LOG(newHeaders[newTitle + "_Product"]);
-			createDatabase(newTitle);
+			createDatabase(newTitleString);
 		}
 	} else {
 		LOG("Cancelled new Database");
@@ -218,4 +231,27 @@ void DatabaseSelection::createDatabaseTables(std::string newTitle) {
 	int msg2 = sqlite3_exec(currentDB, product.c_str(), nullptr, nullptr, nullptr);
 	if (msg1 == SQLITE_OK && msg2 == SQLITE_OK) { LOG("Tables successfully created"); } 
 	else { LOG("Error creating tables"); }
+}
+
+bool DatabaseSelection::userInputValid(QStringList inputs, std::string inputRules) {
+	QStringList invalidHeaders;
+	QRegularExpression validHeaders(
+		QString::fromStdString(config.at("validHeaders")[0])
+	);
+	for (const QString& part : inputs) {
+		QString p = part.trimmed();
+
+		if (!validHeaders.match(p).hasMatch()) {
+			invalidHeaders << p;
+		}
+	}
+
+	if (!invalidHeaders.empty()) {
+		QString message = "Invalid input:\n" + invalidHeaders.join("\n");
+		QMessageBox::warning(this, "Warning", message);
+		return false;
+	}
+	else {
+		return true;
+	}
 }
