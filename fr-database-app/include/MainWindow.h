@@ -16,7 +16,6 @@
 // custom commands
 using dict_like_string = std::unordered_map<std::string, std::vector<std::string>>;
 
-
 namespace Ui {
 	class MainWindow;
 }
@@ -36,7 +35,7 @@ private:
 
 	// variables
 	std::unordered_map<std::string, QWidget*> widgets;
-	dict_like_string defaultHeaders;
+	dict_like_string defaultHeaders; 
 
 	// signals
 	void receiveLoadDatabase(sqlite3* pointerDB, std::string dbTitle);

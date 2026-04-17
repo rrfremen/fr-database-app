@@ -7,12 +7,10 @@
 
 // external library
 #include <QWidget>
-#include <QString>
-#include <QJsonObject>
 #include "../external/sqlite3.h"
+#include "../external/nlohmann-json.hpp"
 
 // internal library
-#include "DatabaseSelection.h"
 
 // custom commands
 using dict_like_string = std::unordered_map<std::string, std::vector<std::string>>;
@@ -57,10 +55,10 @@ private:
 	void createDatabase(std::string newTitle);
 	void createDatabaseTables(std::string newTitle);
 
-	// example database
+	// functions for example database
 	void ensureExampleDatabaseExists();
-	bool createExampleDatabaseFromJson(const QString& filePath);
-	bool createTableFromJson(sqlite3* db, const QJsonObject& tableObj);
-	bool insertRowsFromJson(sqlite3* db, const QJsonObject& tableObj);
+	bool createExampleDatabaseFromJson(const std::string& filePath);
+	bool createTableFromDefinition(sqlite3* db, const std::string& tableName, const nlohmann::json& definition);
+	bool insertRowsFromDefinition(sqlite3* db, const std::string& tableName, const nlohmann::json& definition, const nlohmann::json& content);
 	std::string escapeSqlValue(const std::string& value); // protects sql query from breaking when the text contain ' (single quote)
 };

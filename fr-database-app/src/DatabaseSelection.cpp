@@ -1,5 +1,6 @@
 // built-in
 #include <filesystem>
+#include <fstream>
 namespace fs = std::filesystem;
 #include <iostream>
 
@@ -10,12 +11,6 @@ namespace fs = std::filesystem;
 #include <QPushButton>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
-#include <QFile>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QJsonArray> 
-#include <QCoreApplication>
-#include <QDir>
 
 // internal libraries
 #include "../include/DatabaseSelection.h"
@@ -69,14 +64,22 @@ void DatabaseSelection::populateDatabaseComboBox() {
 		}
 	}
 
+	// populate ComboBox
+	for (const auto& s : listAvailDatabase) {
+		ui->comboBox_selectDatabase->addItem(QString::fromStdString(s));
+	}
+
+	ui->pushButton_loadDB->setEnabled(ui->comboBox_selectDatabase->count() > 0);
+
+	int exampleIndex = ui->comboBox_selectDatabase->findText("Example");
+	if (exampleIndex >= 0) {
+		ui->comboBox_selectDatabase->setCurrentIndex(exampleIndex);
+	}
+
 	// if empty then fallbacks to default
 	if (listAvailDatabase.empty()) {
 		listAvailDatabase.push_back("Default");
 		newDefault = true;
-	}
-	// populate ComboBox
-	for (const auto& s : listAvailDatabase) {
-		ui->comboBox_selectDatabase->addItem(QString::fromStdString(s));
 	}
 }
 
@@ -157,7 +160,13 @@ void DatabaseSelection::onNewDatabase() {
 }
 
 void DatabaseSelection::onLoadDatabase() {
-	std::string currentTitle = ui->comboBox_selectDatabase->currentText().toStdString();
+	std::string currentTitle = ui->comboBox_selectDatabase->currentText().trimmed().toStdString();
+
+	if (currentTitle.empty()) {
+		LOG("No Database selected");
+		return;
+	}
+
 	if (openDatabase(currentTitle) == SQLITE_OK) { 
 		emit signalLoadDB(currentDB, currentTitle); 
 		ui->pushButton_loadDB->setEnabled(false);
@@ -187,6 +196,7 @@ void DatabaseSelection::createDatabase(std::string newTitle) {
 		LOG("Database created successfully");
 		createDatabaseTables(newTitle);
 		sqlite3_close(currentDB);
+		currentDB = nullptr;
 		// re-populate ComboBox
 		populateDatabaseComboBox();
 	} else { LOG("Error creating Database"); }
@@ -236,9 +246,9 @@ void DatabaseSelection::createDatabaseTables(std::string newTitle) {
 	else { LOG("Error creating tables"); }
 }
 
-void DatabaseSelection::ensureExampleDatabaseExists()
-{
-	if (!fs::exists(folderPathDB)){
+// make sure the example database tables from json file exists
+void DatabaseSelection::ensureExampleDatabaseExists() {
+	if (!fs::exists(folderPathDB)) {
 		fs::create_directories(folderPathDB);
 	}
 
@@ -248,119 +258,101 @@ void DatabaseSelection::ensureExampleDatabaseExists()
 		return;
 	}
 
-	QString jsonPath = QDir(QCoreApplication::applicationDirPath())
-		.filePath("assets/example_database.json");
-
-	LOG("JSON path: " << jsonPath.toStdString());
-	LOG("DB path: " << exampleDBPath);
-
-	if (createExampleDatabaseFromJson("assets/example_database.json")) {
-		LOG("example.db created successfully");
+	if (createExampleDatabaseFromJson("./assets/example_database.json")) {
+		LOG("Example.db created successfully");
 	}
 	else {
-		LOG("Failed to create example.db from JSON");
+		LOG("Failed to create Example.db from JSON");
 	}
 }
 
-bool DatabaseSelection::createExampleDatabaseFromJson(const QString& filePath)
-{
-	// check if the jsom file exist
-	QFile file(filePath);
-	if (!file.exists()) {
-		LOG("JSON file does not exist: " << filePath.toStdString());
+// create example database tables from json file
+bool DatabaseSelection::createExampleDatabaseFromJson(const std::string& filePath) {
+	std::ifstream file(filePath);
+	if (!file.is_open()) {
+		LOG("Could not open example_database.json: " + filePath);
 		return false;
 	}
 
-	// if the file object of the json file not exist, this code fails
-	if (!file.open(QIODevice::ReadOnly)) {
-		LOG("Could not open example_database.json: " << filePath.toStdString());
-		return false;
-	}
+	nlohmann::json root;
+	file >> root;
 
-	// takes all contents from json file 
-	QByteArray contents = file.readAll();
-	file.close();
-
-	// to convert the text into json and contain the parsed json
-	QJsonParseError parseError;
-	QJsonDocument doc = QJsonDocument::fromJson(contents, &parseError);
-
-	// make sure whether json is valid
-	if (parseError.error != QJsonParseError::NoError || !doc.isObject()) {
+	if (!root.contains("title") ||
+		!root.contains("definitionClient") ||
+		!root.contains("definitionProduct") ||
+		!root.contains("contentClient") ||
+		!root.contains("contentProduct")) {
 		LOG("Invalid JSON format in example_database.json");
 		return false;
 	}
 
-	// get the tables array
-	QJsonObject rootObj = doc.object();
-	QJsonArray tablesArray = rootObj["tables"].toArray();
+	std::string dbTitle = root["title"].get<std::string>();
+	nlohmann::json definitionClient = root["definitionClient"];
+	nlohmann::json definitionProduct = root["definitionProduct"];
+	nlohmann::json contentClient = root["contentClient"];
+	nlohmann::json contentProduct = root["contentProduct"];
 
-	if (tablesArray.isEmpty()) {
-		LOG("No tables found in example_database.json");
+	if (dbTitle.empty()) {
+		LOG("JSON title is empty");
 		return false;
 	}
 
-	std::string dbPath = folderPathDB + "/example.db";
+	std::string dbPath = folderPathDB + "/" + dbTitle + ".db";
 	sqlite3* db = nullptr;
 
 	if (sqlite3_open(dbPath.c_str(), &db) != SQLITE_OK) {
-		LOG("Could not create or open example.db");
+		LOG("Could not create or open example database");
 		return false;
 	}
 
-	for (const QJsonValue& tableValue : tablesArray) {
-		if (!tableValue.isObject()) {
-			continue;
-		}
+	bool okClientTable = createTableFromDefinition(db, dbTitle + "_Client", definitionClient);
+	bool okProductTable = createTableFromDefinition(db, dbTitle + "_Product", definitionProduct);
 
-		QJsonObject tableObj = tableValue.toObject();
+	bool okClientRows = false;
+	bool okProductRows = false;
 
-		if (!createTableFromJson(db, tableObj)) {
-			sqlite3_close(db);
-			return false;
-		}
-		
-		if (!insertRowsFromJson(db, tableObj)) {
-			sqlite3_close(db);
-			return false;
-		}
+	if (okClientTable) {
+		okClientRows = insertRowsFromDefinition(db, dbTitle + "_Client", definitionClient, contentClient);
+	}
+	if (okProductTable) {
+		okProductRows = insertRowsFromDefinition(db, dbTitle + "_Product", definitionProduct, contentProduct);
 	}
 
 	sqlite3_close(db);
-	return true;
+
+	if (okClientTable && okProductTable && okClientRows && okProductRows) {
+		return true;
+	}
+	return false;
 }
 
-// create tables from json 
-bool DatabaseSelection::createTableFromJson(sqlite3* db, const QJsonObject& tableObj)
-{
-	QString tableName = tableObj["name"].toString().trimmed();
-	QJsonArray columnsArray = tableObj["columns"].toArray();
-
-	if (tableName.isEmpty() || columnsArray.isEmpty()) {
-		LOG("Invalid table definition in JSON");
+// create the tables and show tables
+bool DatabaseSelection::createTableFromDefinition(sqlite3* db, const std::string& tableName, const nlohmann::json& definition) {
+	if (!definition.is_array() || definition.empty()) {
+		LOG("Invalid table definition for " + tableName);
 		return false;
 	}
 
-	std::string createSql = "CREATE TABLE IF NOT EXISTS \"" + tableName.toStdString() + "\" (";
+	std::string createSql = "CREATE TABLE IF NOT EXISTS \"" + tableName + "\" (";
 	createSql += "\"id\" INTEGER PRIMARY KEY, ";
 
-	for (const QJsonValue& colValue : columnsArray) {
-		if (!colValue.isObject()) {
+	for (const auto& entry : definition) {
+		if (!entry.is_string()) {
 			continue;
 		}
 
-		QJsonObject colObj = colValue.toObject();
-		QString colName = colObj["name"].toString().trimmed();
-		QString colType = colObj["type"].toString().trimmed().toUpper();
+		std::string header = entry.get<std::string>();
+		bool isNumber = false;
 
-		if (colName.isEmpty() || colType.isEmpty()) {
-			continue;
+		if (header.find("num:") == 0) {
+			header.erase(0, 4);
+			isNumber = true;
 		}
 
-		createSql += "\"" + colName.toStdString() + "\" " + colType.toStdString() + ", ";
+		createSql += "\"" + header + "\" ";
+		createSql += isNumber ? "INTEGER, " : "TEXT, ";
 	}
 
-	// remove the last comma
 	if (createSql.size() >= 2) {
 		createSql.erase(createSql.size() - 2);
 	}
@@ -369,53 +361,71 @@ bool DatabaseSelection::createTableFromJson(sqlite3* db, const QJsonObject& tabl
 
 	int msg = sqlite3_exec(db, createSql.c_str(), nullptr, nullptr, nullptr);
 	if (msg != SQLITE_OK) {
-		LOG("Error creating table: " << tableName.toStdString());
+		LOG("Error creating table: " + tableName);
 		return false;
 	}
-
 	return true;
 }
 
-// take tables from json and show in UI
-bool DatabaseSelection::insertRowsFromJson(sqlite3* db, const QJsonObject& tableObj)
-{
-	QString tableName = tableObj["name"].toString().trimmed();
-	QJsonArray columnsArray = tableObj["columns"].toArray();
-	QJsonArray rowsArray = tableObj["rows"].toArray();
-
-	if (tableName.isEmpty() || columnsArray.isEmpty()) {
-		LOG("Invalid insert definition in JSON");
+// insert the rows from example database tables 
+bool DatabaseSelection::insertRowsFromDefinition(sqlite3* db, const std::string& tableName, const nlohmann::json& definition, const nlohmann::json& content) {
+	if (!definition.is_array() || !content.is_array()) {
+		LOG("Invalid insert definition for " + tableName);
 		return false;
 	}
 
-	for (const QJsonValue& rowValue : rowsArray) {
-		if (!rowValue.isObject()) {
+	for (const auto& row : content) {
+		if (!row.is_array()) {
 			continue;
 		}
 
-		QJsonObject rowObj = rowValue.toObject();
-
-		std::string insertSql = "INSERT INTO \"" + tableName.toStdString() + "\" (";
+		std::string insertSql = "INSERT INTO \"" + tableName + "\" (";
 		std::string valuesPart = "VALUES (";
 
-		for (int i = 0; i < columnsArray.size(); ++i) {
-			QJsonObject colObj = columnsArray[i].toObject();
-			QString colName = colObj["name"].toString().trimmed();
-			QString colType = colObj["type"].toString().trimmed().toUpper();
+		size_t columnCount = definition.size();
+		for (size_t i = 0; i < columnCount; ++i) {
+			if (!definition[i].is_string()) {
+				continue;
+			}
 
-			insertSql += "\"" + colName.toStdString() + "\"";
+			std::string header = definition[i].get<std::string>();
+			bool isNumber = false;
 
-			QJsonValue cellValue = rowObj.value(colName);
+			if (header.find("num:") == 0) {
+				header.erase(0, 4);
+				isNumber = true;
+			}
 
-			if (colType == "INTEGER") {
-				valuesPart += std::to_string(cellValue.toInt());
+			insertSql += "\"" + header + "\"";
+
+			if (i < row.size()) {
+				if (row[i].is_null()) {
+					valuesPart += "NULL";
+				}
+				else if (isNumber) {
+					if (row[i].is_number()) {
+						valuesPart += row[i].dump();
+					}
+					else if (row[i].is_string()) {
+						std::string numericValue = row[i].get<std::string>();
+						valuesPart += numericValue.empty() ? "NULL" : numericValue;
+					}
+					else {
+						valuesPart += "0";
+					}
+				}
+				else {
+					std::string textValue = row[i].is_string()
+						? row[i].get<std::string>()
+						: row[i].dump();
+					valuesPart += "'" + escapeSqlValue(textValue) + "'";
+				}
 			}
 			else {
-				std::string textValue = cellValue.toString().toStdString();
-				valuesPart += "'" + escapeSqlValue(textValue) + "'";
+				valuesPart += "NULL";
 			}
 
-			if (i != columnsArray.size() - 1) {
+			if (i != columnCount - 1) {
 				insertSql += ", ";
 				valuesPart += ", ";
 			}
@@ -427,25 +437,21 @@ bool DatabaseSelection::insertRowsFromJson(sqlite3* db, const QJsonObject& table
 
 		int msg = sqlite3_exec(db, insertSql.c_str(), nullptr, nullptr, nullptr);
 		if (msg != SQLITE_OK) {
-			LOG("Error inserting row into table: " << tableName.toStdString());
+			LOG("Error inserting row into table: " + tableName);
 			return false;
 		}
 	}
-
 	return true;
 }
 
 // protects sql query from breaking when the text contain ' (single quote)
-std::string DatabaseSelection::escapeSqlValue(const std::string& value)
-{
+std::string DatabaseSelection::escapeSqlValue(const std::string& value) {
 	std::string escaped = value;
 	size_t pos = 0;
 
-	// find the single quote
 	while ((pos = escaped.find('\'', pos)) != std::string::npos) {
 		escaped.insert(pos, "'");
 		pos += 2;
 	}
-
 	return escaped;
 }

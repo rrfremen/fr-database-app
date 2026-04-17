@@ -3,7 +3,6 @@
 #include <fstream>
 
 // external libraries
-#include "./external/nlohmann-json.hpp"
 #include "../external/sqlite3.h"
 
 // internal libraries
