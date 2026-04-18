@@ -27,6 +27,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="assets\config.json" />
+    <None Include="assets\example_database.json" />
     <None Include="fr-database-app.slnx" />
   </ItemGroup>
   <ItemGroup>

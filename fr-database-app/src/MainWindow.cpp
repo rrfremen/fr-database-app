@@ -51,8 +51,8 @@ void MainWindow::getConfig() {
 	file >> config_json;
 
 	// get default headers
-	for (auto& [key, value] : config_json["defaultDatabase"].items()) {
-		if (key.find("definition") != std::string::npos) {
+	for (auto& [key, value] : config_json["defaultHeaders"].items()) {
+		if (key.find("headers") != std::string::npos) {
 			config[key] = value.get<std::vector<std::string>>();
 		}
 	}

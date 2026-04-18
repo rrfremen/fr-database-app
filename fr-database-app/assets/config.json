@@ -3,8 +3,8 @@
     "EntryBuyer": [ "Name", "Contact Details", "Address", "Budget", "Keywords" ],
     "EntryProperty": [ "Id", "Date", "Address", "Price", "Rooms", "Area", "Keywords" ]
   },
-  "defaultDatabase": {
-    "definitionClient": [
+  "defaultHeaders": {
+    "headersClient": [
       "Name",
       "Phone",
       "Email",
@@ -12,7 +12,7 @@
       "num:Budget",
       "Keywords"
     ],
-    "definitionProduct": [
+    "headersProduct": [
       "Date",
       "Address",
       "num:Price",

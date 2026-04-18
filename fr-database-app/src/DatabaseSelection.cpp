@@ -140,9 +140,9 @@ void DatabaseSelection::onNewDatabase() {
 			&dialog, [=] {
 				QStringList clientHeaders;
 				QStringList productHeaders;
-				for (const auto& s : config.at("definitionClient"))
+				for (const auto& s : config.at("headersClient"))
 					clientHeaders << QString::fromStdString(s);
-				for (const auto& s : config.at("definitionProduct"))
+				for (const auto& s : config.at("headersProduct"))
 					productHeaders << QString::fromStdString(s);
 				insertDBClientHeaders->setText(clientHeaders.join(","));
 				insertDBProductHeaders->setText(productHeaders.join(","));
