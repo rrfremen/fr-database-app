@@ -1,22 +1,38 @@
 {
   "listCols": {
-    "EntryBuyer": [ "Name", "Contact Details", "Adress", "Budget", "Keywords" ],
-    "EntryProperty": [ "Id", "Date", "Adress", "Price", "Rooms", "Area", "Keywords" ]
+    "EntryBuyer": [ "Name", "Contact Details", "Address", "Budget", "Keywords" ],
+    "EntryProperty": [ "Id", "Date", "Address", "Price", "Rooms", "Area", "Keywords" ]
   },
   "defaultDatabase": {
     "definitionClient": [
-      "Name", "Phone", "Email", "Address", "num:Budget", "Keywords"
+      "Name",
+      "Phone",
+      "Email",
+      "Address",
+      "num:Budget",
+      "Keywords"
     ],
     "definitionProduct": [
-      "Date", "Address", "num:Price", "Keywords"
+      "Date",
+      "Address",
+      "num:Price",
+      "Keywords"
     ],
     "contentClient": [
       [ "John", "012345678", "john@mail.com", "Main Street 81", "200", "Banker, Single" ],
       [ "Hannah", "012365487", "hannah@mail.com", "High Avenue 24", "400", "Politician, Married" ]
     ],
     "contentProduct": [
-      ["20.03.2026", "Park Street 120", "200000.0", "renovated, open-plan, parking" ],
-      ["23.03.2026", "Lake Road", "50000.0", "cottage, big-garden, quiet" ]
+      [ "20.03.2026", "Park Street 120", "200000.0", "renovated, open-plan, parking" ],
+      [ "23.03.2026", "Lake Road", "50000.0", "cottage, big-garden, quiet" ]
+    ]
+  },
+  "entryRules": {
+    "validTitle": [
+      "^[A-Za-z_][A-Za-z0-9_ ]*$"
+    ],
+    "validHeaders": [
+      "^(num:[A-Za-z0-9_ ]+|[A-Za-z_][A-Za-z0-9_ ]*)$"
     ]
   }
 }

@@ -3,7 +3,8 @@
 #include <fstream>
 
 // external libraries
-#include "../external/sqlite3.h"
+#include "./external/nlohmann-json.hpp"
+#include "./external/sqlite3.h"
 
 // internal libraries
 #include "../include/MainWindow.h"
@@ -11,7 +12,6 @@
 
 // internal Ui libraries
 #include "ui_MainWindow.h"
-
 
 MainWindow::MainWindow(QWidget* parent)
 	: QMainWindow(parent)
@@ -31,12 +31,10 @@ MainWindow::~MainWindow()
 }
 
 void MainWindow::setupUiDatabaseSelection() {
-	databaseSelection = new DatabaseSelection();
+	databaseSelection = new DatabaseSelection(this, config);
 	ui->tabWidget_centralWidget->addTab(databaseSelection, "Database");
+
 	// pass default headers from config to database selection
-	// TODO: find a robuster way maybe
-	databaseSelection->defaultHeaders["defaultHeadersClient"] = defaultHeaders["definitionClient"];
-	databaseSelection->defaultHeaders["defaultHeadersProduct"] = defaultHeaders["definitionProduct"];
 	connect(databaseSelection, &DatabaseSelection::signalLoadDB,
 			this, &MainWindow::receiveLoadDatabase);
 	connect(databaseSelection, &DatabaseSelection::signalUnloadDB,
@@ -49,15 +47,20 @@ void MainWindow::setupConnections() {
 
 void MainWindow::getConfig() {
 	std::ifstream file("./assets/config.json");
-	nlohmann::json config;
-	file >> config;
+	nlohmann::json config_json;
+	file >> config_json;
 
 	// get default headers
-	for (auto& [key, value] : config["defaultDatabase"].items()) {
+	for (auto& [key, value] : config_json["defaultDatabase"].items()) {
 		if (key.find("definition") != std::string::npos) {
-			defaultHeaders[key] = value.get<std::vector<std::string>>();
+			config[key] = value.get<std::vector<std::string>>();
 		}
 	}
+	// entry rules
+	for (auto& [key, value] : config_json["entryRules"].items()) {
+		config[key] = value.get<std::vector<std::string>>();
+	}
+
 }
 
 void MainWindow::receiveLoadDatabase(sqlite3* pointerDB, std::string dbTitle) {

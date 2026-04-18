@@ -32,11 +32,17 @@ private:
 	// database
 	sqlite3* currentDB = nullptr;
 	QStringList currentHeaders;
-	void updateHeaders();
 
+	void updateHeaders();
 	void initUi();
 	void setupConnections();
+
 	void addEntry();
 	void removeEntry();
+	void editEntry();
+	void loadTableFromQuery(const std::string& sql);
+	void searchEntry();
+	void loadSearchHeaders();
+	void onSearchTextChanged(const QString& text);
 	void reloadTable();
 };
