@@ -12,6 +12,10 @@ namespace fs = std::filesystem;
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QMessageBox>
+#include <QFileDialog>
+#include <QComboBox>
+#include <QTableWidget>
+#include <QTableWidgetItem>
 
 // internal libraries
 #include "../include/DatabaseSelection.h"
@@ -46,6 +50,8 @@ void DatabaseSelection::setupConnections() {
 			this, &DatabaseSelection::onUnloadDatabase);
 	connect(ui->pushButton_newDB, &QPushButton::clicked,
 			this, &DatabaseSelection::onNewDatabase);
+	connect(ui->pushButton_importCSV, &QPushButton::clicked,
+		this, &DatabaseSelection::onImportCsv);
 }
 
 void DatabaseSelection::populateDatabaseComboBox() {
@@ -489,4 +495,324 @@ std::string DatabaseSelection::escapeSqlValue(const std::string& value) {
 		pos += 2;
 	}
 	return escaped;
+}
+
+// get the headers and rows from the CSV file
+std::pair<std::vector<std::string>, std::vector<std::vector<std::string>>> DatabaseSelection::parseCsv(const std::string& filePath) {
+	std::vector<std::string> headers;
+	std::vector<std::vector<std::string>> rows;
+
+	std::ifstream file(filePath);
+	if (!file.is_open()) {
+		LOG("Could not open CSV file: " + filePath);
+		return {};
+	}
+
+	auto parseLine = [](const std::string& line, char delimiter) {
+		std::vector<std::string> fields;
+		std::string field;
+		bool inQuotes = false;
+
+		for (size_t i = 0; i < line.size(); ++i) {
+			char c = line[i];
+			if (c == '"') {
+				if (inQuotes && i + 1 < line.size() && line[i + 1] == '"') {
+					field += '"';
+					++i;
+				}
+				else {
+					inQuotes = !inQuotes;
+				}
+			}
+			else if (c == delimiter && !inQuotes) {
+				fields.push_back(field);
+				field.clear();
+			}
+			else {
+				field += c;
+			}
+		}
+		fields.push_back(field);
+		return fields;
+		};
+
+	// detect delimiter from header line
+	std::string headerLine;
+	if (!std::getline(file, headerLine)) return {};
+	if (!headerLine.empty() && headerLine.back() == '\r')
+		headerLine.pop_back();
+
+	char delimiter = ','; // default
+	int commaCount = std::count(headerLine.begin(), headerLine.end(), ',');
+	int semicolonCount = std::count(headerLine.begin(), headerLine.end(), ';');
+	int tabCount = std::count(headerLine.begin(), headerLine.end(), '\t');
+
+	if (semicolonCount > commaCount && semicolonCount >= tabCount)
+		delimiter = ';';
+	else if (tabCount > commaCount && tabCount >= semicolonCount)
+		delimiter = '\t';
+
+	LOG("CSV delimiter detected: " + std::string(1, delimiter));
+
+	headers = parseLine(headerLine, delimiter);
+	for (auto& h : headers)
+		if (!h.empty() && h.back() == '\r') h.pop_back();
+
+	std::string line;
+	while (std::getline(file, line)) {
+		if (line.empty() || line == "\r") continue;
+		auto fields = parseLine(line, delimiter);
+		for (auto& f : fields)
+			if (!f.empty() && f.back() == '\r') f.pop_back();
+		rows.push_back(fields);
+	}
+	return { 
+		headers, rows 
+	};
+}
+
+void DatabaseSelection::onImportCsv()
+{
+	// pick the CSV file
+	QString filePath = QFileDialog::getOpenFileName(this, "Import CSV", QString(), "CSV Files (*.csv)");
+	if (filePath.isEmpty()) return;
+
+	auto [headers, rows] = parseCsv(filePath.toStdString());
+	if (headers.empty()) {
+		QMessageBox::warning(this, "Import Failed",
+			"CSV file is empty or could not be read.");
+		return;
+	}
+
+	// build new dialog for importing csv file 
+	QDialog dialog(this);
+	dialog.setWindowTitle("Import CSV");
+	QVBoxLayout* layout = new QVBoxLayout(&dialog);
+
+	// enter the DB name and show in combo box a combination from existing DBs + free-type for new ones
+	layout->addWidget(new QLabel("Database name:", &dialog));
+	QComboBox* editDbName = new QComboBox(&dialog);
+	editDbName->setEditable(true);
+	editDbName->setInsertPolicy(QComboBox::NoInsert); // only type in the name of the database
+	editDbName->setPlaceholderText("Select existing or type new name");
+	for (const auto& db : listAvailDatabase)
+		editDbName->addItem(QString::fromStdString(db));
+	editDbName->setCurrentText("");
+	layout->addWidget(editDbName);
+
+	// show status label updates when the user picks a DB name
+	QLabel* statusLabel = new QLabel(&dialog);
+	statusLabel->setWordWrap(true);
+	layout->addWidget(statusLabel);
+
+	// table type
+	layout->addWidget(new QLabel("Import as:", &dialog));
+	QComboBox* comboType = new QComboBox(&dialog);
+	comboType->addItems({ "Client", "Product" });
+	layout->addWidget(comboType);
+
+	// check which tables already exist in a given .db file
+	auto getExistingTables = [&](const std::string& dbName) -> std::vector<std::string> {
+		std::string path = folderPathDB + "/" + dbName + ".db";
+		if (!fs::exists(path)) return {};
+
+		sqlite3* db = nullptr;
+		if (sqlite3_open_v2(path.c_str(), &db, SQLITE_OPEN_READONLY, nullptr) != SQLITE_OK)
+			return {};
+
+		std::vector<std::string> tables;
+		std::string sql = "SELECT name FROM sqlite_master WHERE type='table';";
+		sqlite3_exec(db, sql.c_str(), [](void* data, int, char** argv, char**) {
+			reinterpret_cast<std::vector<std::string>*>(data)->push_back(argv[0]);
+			return 0;
+			}, &tables, nullptr);
+
+		sqlite3_close(db);
+		return tables;
+		};
+
+	// refresh the status label + disable table type if already present
+	auto refreshStatus = [&]() {
+		QString dbName = editDbName->currentText().trimmed();
+		if (dbName.isEmpty()) {
+			statusLabel->setText("");
+			return;
+		}
+
+		auto existing = getExistingTables(dbName.toStdString());
+		bool hasClient = std::find(existing.begin(), existing.end(),
+			dbName.toStdString() + "_Client") != existing.end();
+		bool hasProduct = std::find(existing.begin(), existing.end(),
+			dbName.toStdString() + "_Product") != existing.end();
+
+		if (existing.empty()) {
+			statusLabel->setText("New database will be created.");
+			comboType->setEnabled(true);
+		}
+		else if (hasClient && hasProduct) {
+			statusLabel->setText(
+				"This database already has both tables. "
+				"Importing will add rows to the selected table.");
+			comboType->setEnabled(true);
+		}
+		else if (hasClient) {
+			statusLabel->setText("Client table exists, now importing as Product.");
+			comboType->setCurrentText("Product");
+			comboType->setEnabled(false);   // lock to the missing one
+		}
+		else if (hasProduct) {
+			statusLabel->setText("Product table exists, now importing as Client.");
+			comboType->setCurrentText("Client");
+			comboType->setEnabled(false);
+		}
+		else {
+			statusLabel->setText("Existing database detected.");
+			comboType->setEnabled(true);
+		}
+		};
+
+	connect(editDbName, &QComboBox::currentTextChanged,
+		&dialog, [&](const QString&) { refreshStatus(); });
+	refreshStatus(); // run once on open
+
+	// preview
+	layout->addWidget(new QLabel(
+		QString("Preview (%1 columns, %2 rows):")
+		.arg(headers.size()).arg(rows.size()), &dialog));
+
+	QTableWidget* preview = new QTableWidget(&dialog);
+	preview->setEditTriggers(QAbstractItemView::NoEditTriggers);
+	preview->setColumnCount(static_cast<int>(headers.size()));
+
+	QStringList qHeaders;
+	for (const auto& h : headers) qHeaders << QString::fromStdString(h);
+	preview->setHorizontalHeaderLabels(qHeaders);
+
+	int previewRows = std::min(static_cast<int>(rows.size()), 5);
+	preview->setRowCount(previewRows);
+	for (int r = 0; r < previewRows; ++r) {
+		for (int c = 0; c < static_cast<int>(headers.size()); ++c) {
+			QString val = (c < static_cast<int>(rows[r].size()))
+				? QString::fromStdString(rows[r][c]) : "";
+			preview->setItem(r, c, new QTableWidgetItem(val));
+		}
+	}
+	//preview->resizeColumnsToContents();
+	//preview->setMinimumHeight(160);
+	layout->addWidget(preview);
+
+	// buttons
+	QHBoxLayout* btnLayout = new QHBoxLayout();
+	QPushButton* btnImport = new QPushButton("Import", &dialog);
+	QPushButton* btnCancel = new QPushButton("Cancel", &dialog);
+	btnLayout->addWidget(btnImport);
+	btnLayout->addWidget(btnCancel);
+	layout->addLayout(btnLayout);
+
+	connect(btnCancel, &QPushButton::clicked, &dialog, &QDialog::reject);
+	connect(btnImport, &QPushButton::clicked, &dialog, [&] {
+		QString dbName = editDbName->currentText().trimmed();
+		if (!userInputValid(QStringList(dbName), config.at("validTitle")[0])) return;
+		dialog.accept();
+		});
+
+	if (dialog.exec() != QDialog::Accepted) return;
+
+	// import the database
+	std::string dbTitle = editDbName->currentText().trimmed().toStdString();
+	std::string tableType = comboType->currentText().toStdString();
+
+	if (importCsvToDatabase(dbTitle, tableType, headers, rows)) {
+		// check if the DB now has both tables and show information to user
+		auto existing = getExistingTables(dbTitle);
+		bool hasClient = std::find(existing.begin(), existing.end(),
+			dbTitle + "_Client") != existing.end();
+		bool hasProduct = std::find(existing.begin(), existing.end(),
+			dbTitle + "_Product") != existing.end();
+
+		QString msg = QString("'%1_%2' imported successfully.\n")
+			.arg(QString::fromStdString(dbTitle))
+			.arg(QString::fromStdString(tableType));
+
+		if (hasClient && hasProduct)
+			msg += "Database is complete and both tables present.";
+		else if (hasClient)
+			msg += "Still missing: Product table. Import another CSV to complete it.";
+		else
+			msg += "Still missing: Client table. Import another CSV to complete it.";
+
+		QMessageBox::information(this, "Import Successful", msg);
+		populateDatabaseComboBox();
+	}
+	else {
+		QMessageBox::critical(this, "Import Failed",
+			"Could not write the database. Check logs for details.");
+	}
+}
+
+bool DatabaseSelection::importCsvToDatabase(const std::string& dbTitle, const std::string& tableType, const std::vector<std::string>& headers, const std::vector<std::vector<std::string>>& rows) {
+	std::string dbPath = folderPathDB + "/" + dbTitle + ".db";
+	sqlite3* db = nullptr;
+
+	if (sqlite3_open(dbPath.c_str(), &db) != SQLITE_OK) {
+		LOG("Could not open/create database: " + dbPath);
+		return false;
+	}
+
+	std::string tableName = dbTitle + "_" + tableType;
+	std::string createSql = "CREATE TABLE IF NOT EXISTS \"" + tableName + "\" (";
+	createSql += "\"id\" INTEGER PRIMARY KEY, ";
+
+	for (const auto& h : headers) {
+		std::string col = h;
+		bool isNum = (col.find("num:") == 0);
+		if (isNum) col.erase(0, 4);
+		createSql += "\"" + col + "\" " + (isNum ? "INTEGER" : "TEXT") + ", ";
+	}
+	createSql.erase(createSql.size() - 2);
+	createSql += ");";
+
+	if (sqlite3_exec(db, createSql.c_str(), nullptr, nullptr, nullptr) != SQLITE_OK) {
+		LOG("Error creating table: " + tableName);
+		sqlite3_close(db);
+		return false;
+	}
+
+	// insert rows
+	for (const auto& row : rows) {
+		std::string insertSql = "INSERT INTO \"" + tableName + "\" (";
+		std::string valuesPart = "VALUES (";
+
+		for (size_t i = 0; i < headers.size(); ++i) {
+			std::string col = headers[i];
+			bool isNum = (col.find("num:") == 0);
+			if (isNum) col.erase(0, 4);
+
+			insertSql += "\"" + col + "\"";
+
+			std::string val = (i < row.size()) ? row[i] : "";
+			if (isNum) {
+				valuesPart += val.empty() ? "NULL" : val;
+			}
+			else {
+				valuesPart += "'" + escapeSqlValue(val) + "'";
+			}
+
+			if (i != headers.size() - 1) {
+				insertSql += ", ";
+				valuesPart += ", ";
+			}
+		}
+		insertSql += ") " + valuesPart + ");";
+
+		if (sqlite3_exec(db, insertSql.c_str(), nullptr, nullptr, nullptr) != SQLITE_OK) {
+			LOG("Error inserting row into: " + tableName);
+			sqlite3_close(db);
+			return false;
+		}
+	}
+
+	sqlite3_close(db);
+	LOG("CSV file imported successfully into: " + tableName);
+	return true;
 }

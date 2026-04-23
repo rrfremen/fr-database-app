@@ -61,4 +61,10 @@ private:
 	bool createTableFromDefinition(sqlite3* db, const std::string& tableName, const nlohmann::json& definition);
 	bool insertRowsFromDefinition(sqlite3* db, const std::string& tableName, const nlohmann::json& definition, const nlohmann::json& content);
 	std::string escapeSqlValue(const std::string& value); // protects sql query from breaking when the text contain ' (single quote)
+	
+	// functions for importing csv data
+	std::pair<std::vector<std::string>, std::vector<std::vector<std::string>>>parseCsv(const std::string& filePath);
+	void onImportCsv();
+	bool importCsvToDatabase(const std::string& dbTitle, const std::string& tableType, const std::vector<std::string>& headers, const std::vector<std::vector<std::string>>& rows);
+	
 };
