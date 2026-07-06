@@ -2,5 +2,5 @@
 
 
 
-A C++-based project for a (local) database app using Qt and SQL.
+A C++-based project for a (local) database app using Qt and SQL - ongoing project.
 
