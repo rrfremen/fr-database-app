@@ -1,0 +1,51 @@
+{
+	"title": "Example",
+	"definitionClient": [ "First Name","Last Name","Date of Birth","num:Budget","Keywords"],
+	"definitionProduct": [ "Name","Type","Description","num:Price","Keywords"],
+
+	"contentClient": [
+		[ "Jame", "Massey", "12.03.1995", "800.0", "music, travel, photography" ],
+		[ "Jarvis", "Romero", "25.07.1990", "1200.0", "gaming, tech, gadgets" ],
+		[ "Alex", "Calhoun", "02.11.1994", "500.0", "books, writing, quiet" ],
+		[ "Lourdes", "Pham", "19.01.1988", "1500.0", "fitness, outdoor, health" ],
+		[ "Hazel", "Young", "30.05.1998", "700.0", "music, gaming, movies" ],
+		[ "Ella", "Hester", "14.09.1996", "2000.0", "fashion, shopping, beauty" ],
+		[ "Marta", "Blake", "08.12.1985", "900.0", "yoga, wellness, nature" ],
+		[ "Anastasia", "Robbins", "21.04.1993", "500.0", "music, dance, art" ],
+		[ "Marietta", "Small", "11.02.1976", "500.0", "food, cooking, kitchen" ],
+		[ "Dan", "Allison", "10.06.1991", "600.0", "gaming, coding, tech" ],
+		[ "Rachael", "Krueger", "27.02.1985", "1400.0", "photography, travel, art" ],
+		[ "Haley", "Knight", "15.08.1989", "400.0", "reading, chess, strategy" ],
+		[ "Nathan", "Andrade", "03.03.1987", "1000.0", "sports, fitness, outdoor" ],
+		[ "Fletcher", "Chaney", "28.01.1990", "1400.0", "tech, gadgets, coding" ],
+		[ "Keenan", "Kerr", "30.11.1994", "2000.0", "cars, luxury, business" ],
+		[ "Thaddeus", "Rios", "07.07.1996", "1700.0", "fashion, design, art" ],
+		[ "Ida", "Dillon", "11.12.1999", "900.0", "music, social, dancing" ],
+		[ "Moises", "Lucas", "22.06.1998", "1600.0", "travel, blogging, photography" ],
+		[ "Deana", "Suarez", "19.09.1986", "600.0", "movies, cinema, acting" ],
+		[ "Karina", "Mcknight", "16.05.1993", "750.0", "yoga, health, relaxation" ]
+	],
+
+	"contentProduct": [
+		[ "Gaming Laptop", "Electronics", "High performance laptop for gaming", "1100.0", "gaming, tech, performance" ],
+		[ "Smartphone Pro", "Electronics", "Latest smartphone with advanced features", "900.0", "tech, gadgets, mobile" ],
+		[ "Mountain Bike", "Sports", "Durable bike for outdoor trails", "700.0", "outdoor, fitness, sports" ],
+		[ "Yoga Mat", "Fitness", "Comfortable mat for yoga exercises", "50.0", "yoga, wellness, health" ],
+		[ "DSLR Camera", "Electronics", "Professional camera for photography", "1200.0", "photography, art, travel" ],
+		[ "Cookware Set", "Home", "Complete set for cooking", "300.0", "cooking, food, kitchen" ],
+		[ "Luxury Watch", "Fashion", "Elegant watch for formal wear", "1800.0", "fashion, luxury, style" ],
+		[ "Car Tool Kit", "Automotive", "Essential tools for car repair", "200.0", "cars, tools, mechanics" ],
+		[ "Bluetooth Speaker", "Electronics", "Portable speaker with high quality sound", "150.0", "music, gadgets, audio" ],
+		[ "Running Shoes", "Sports", "Lightweight shoes for running", "120.0", "fitness, sports, outdoor" ],
+		[ "Office Laptop", "Electronics", "Laptop for work and productivity", "800.0", "tech, work, productivity" ],
+		[ "Travel Backpack", "Accessories", "Backpack for travel and outdoor use", "100.0", "travel, outdoor, adventure" ],
+		[ "Makeup Kit", "Beauty", "Complete beauty and makeup set", "250.0", "beauty, fashion, style" ],
+		[ "Gaming Console", "Electronics", "Next-gen gaming console", "500.0", "gaming, entertainment, tech" ],
+		[ "Books Collection", "Education", "Set of popular novels", "80.0", "books, reading, writing" ],
+		[ "Fitness Tracker", "Fitness", "Track your daily activities", "200.0", "fitness, health, tech" ],
+		[ "Designer Handbag", "Fashion", "Stylish handbag for daily use", "1500.0", "fashion, shopping, luxury" ],
+		[ "Electric Guitar", "Music", "Guitar for music enthusiasts", "600.0", "music, instruments, art" ],
+		[ "Cinema Projector", "Entertainment", "Home cinema experience", "700.0", "movies, cinema, entertainment" ],
+		[ "Luxury Car Model", "Automotive", "High-end miniature car model", "2000.0", "cars, luxury, collection" ]
+	]
+}
