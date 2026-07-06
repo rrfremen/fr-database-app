@@ -64,6 +64,7 @@
   <ItemGroup>
     <None Include="fr-database-app.slnx" />
     <None Include="assets\config.json" />
+    <None Include="assets\example_database.json" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="external\nlohmann-json.hpp">
